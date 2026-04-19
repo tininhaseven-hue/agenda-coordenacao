@@ -318,7 +318,7 @@ export function useRoutines(activeDateStr: string) {
       dayOfMonth,
       startDate: targetDate, // Atribui a data alvo como início
       endDate,
-      isRecurringDefinition: isRecurring
+      isRecurringDefinition: !!isRecurring
     };
 
     setCustomTasksByStore(prev => {

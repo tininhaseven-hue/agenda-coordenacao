@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Project, ProjectTask, ProjectExecution, Area, ALL_STORES, MatrixRow, MaintenanceIncident, MaintenanceTask, ShoppingItem } from '@/types';
+import { Project, ProjectTask, ProjectExecution, Area, ALL_STORES, MatrixRow, MaintenanceIncident, MaintenanceTask, ShoppingItem, ProjectType } from '@/types';
 import { pushToCloud, pullFromCloud } from '@/utils/syncUtils';
 import { IBERSOL_INITIAL_TRAINING } from '@/constants/templates';
 

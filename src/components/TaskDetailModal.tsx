@@ -79,7 +79,7 @@ export function TaskDetailModal({
     if (isOpen) {
       if (storeName === 'Todas as Lojas') {
         // Encontra a primeira loja que tenha notas preenchidas
-        let storeToFocus = ALL_STORES[0];
+        let storeToFocus: Store = ALL_STORES[0] as Store;
         for (const s of ALL_STORES) {
           const notes = isCustomTask 
             ? allCustomExecutions?.[s]?.find(t => t.id === routine.id)?.notes
@@ -311,9 +311,9 @@ export function TaskDetailModal({
           ) : (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="store-badge-detail">Loja: {activeStore}</div>
-              {isCustomTask && (routine as CustomTask).startDate && (
+              {isCustomTask && (routine as unknown as CustomTask).startDate && (
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  📅 {(routine as CustomTask).startDate} {(routine as CustomTask).endDate ? `até ${(routine as CustomTask).endDate}` : ''}
+                  📅 {(routine as unknown as CustomTask).startDate} {(routine as unknown as CustomTask).endDate ? `até ${(routine as unknown as CustomTask).endDate}` : ''}
                 </div>
               )}
             </div>
@@ -327,7 +327,7 @@ export function TaskDetailModal({
                   <label style={{ fontSize: '0.65rem', display: 'block', marginBottom: '0.2rem', fontWeight: 700 }}>Início</label>
                   <input 
                     type="date"
-                    value={(routine as CustomTask).startDate || ''}
+                    value={(routine as unknown as CustomTask).startDate || ''}
                     onChange={(e) => {
                       if (isGlobal) {
                         ALL_STORES.forEach(s => onUpdateTask(routine.id, s, { startDate: e.target.value }));
@@ -342,8 +342,8 @@ export function TaskDetailModal({
                   <label style={{ fontSize: '0.65rem', display: 'block', marginBottom: '0.2rem', fontWeight: 700 }}>Fim</label>
                   <input 
                     type="date"
-                    value={(routine as CustomTask).endDate || (routine as CustomTask).startDate || ''}
-                    min={(routine as CustomTask).startDate || ''}
+                    value={(routine as unknown as CustomTask).endDate || (routine as unknown as CustomTask).startDate || ''}
+                    min={(routine as unknown as CustomTask).startDate || ''}
                     onChange={(e) => {
                       if (isGlobal) {
                         ALL_STORES.forEach(s => onUpdateTask(routine.id, s, { endDate: e.target.value }));
