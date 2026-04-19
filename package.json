@@ -9,9 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.2",
+    "dexie": "^4.4.2",
+    "jodit": "^4.12.2",
+    "jodit-react": "^5.3.21",
     "next": "16.2.3",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

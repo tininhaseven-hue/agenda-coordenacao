@@ -1,0 +1,58 @@
+import { NextRequest, NextResponse } from 'next/server';
+import db, { initDb } from '@/lib/db';
+
+export async function GET(req: NextRequest) {
+  try {
+    await initDb();
+    
+    // Autenticação básica via Header
+    const auth = req.headers.get('x-access-pin');
+    if (auth !== process.env.ACCESS_PIN && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const result = await db.execute('SELECT key, value, updatedAt FROM SyncData');
+    
+    // Transformar em objeto Record<string, string>
+    const data: Record<string, string> = {};
+    result.rows.forEach((row: any) => {
+      data[row.key] = row.value;
+    });
+
+    return NextResponse.json({ data });
+  } catch (error: any) {
+    console.error('Sync GET error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    await initDb();
+
+    // Autenticação básica via Header
+    const auth = req.headers.get('x-access-pin');
+    if (auth !== process.env.ACCESS_PIN && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const { key, value } = await req.json();
+
+    if (!key) {
+      return NextResponse.json({ error: 'Chave em falta' }, { status: 400 });
+    }
+
+    const updatedAt = Date.now();
+
+    // Upsert (Insert or Replace)
+    await db.execute({
+      sql: 'INSERT OR REPLACE INTO SyncData (key, value, updatedAt) VALUES (?, ?, ?)',
+      args: [key, value, updatedAt]
+    });
+
+    return NextResponse.json({ success: true, updatedAt });
+  } catch (error: any) {
+    console.error('Sync POST error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

@@ -1,0 +1,20 @@
+export const IBERSOL_INITIAL_TRAINING = [
+  "Somos Ibersol",
+  "Segurança e Saúde do Trabalho: Operações",
+  "Segurança Alimentar: Operações",
+  "Certificação Inicial Basics",
+  "Basics: Food Allergies & Intolerances",
+  "Basics: Clean & Safe",
+  "Food Lovers",
+  "Service Lovers",
+  "Guest Experience",
+  "Sales Operations",
+  "Certificação Inicial Front of the House",
+  "Requisitos Legais Embalagens Travel",
+  "Menu 10 - Cartão Continente SOL",
+  "Combate ao Desperdício Alimentar Too Good To Go",
+  "Go To Veggie",
+  "Francesinha GOTO",
+  "Empanadas Argentinas",
+  "Programa de fidelização de clientes - Cartão Continente"
+];
