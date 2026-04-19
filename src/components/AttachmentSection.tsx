@@ -1,8 +1,28 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import db, { Attachment } from '@/lib/db';
+import Dexie, { type EntityTable } from 'dexie';
 import { AudioRecorder } from './AudioRecorder';
+
+export interface Attachment {
+  id: string;
+  taskId: string;
+  date: string;
+  store: string;
+  type: 'pdf' | 'audio';
+  name: string;
+  blob: Blob;
+  createdAt: number;
+}
+
+// Criar um DB Local (Dexie) apenas para Anexos (Blobs grandes)
+const localDb = new Dexie('AgendaAttachments') as Dexie & {
+  attachments: EntityTable<Attachment, 'id'>;
+};
+
+localDb.version(1).stores({
+  attachments: 'id, taskId, date, store'
+});
 
 interface AttachmentSectionProps {
   taskId: string;
@@ -21,8 +41,7 @@ export function AttachmentSection({
   // Carregar anexos existentes para esta tarefa específica
   const loadAttachments = useCallback(async () => {
     try {
-      // Filtrar do base de dados por taskId e data
-      const results = await db.attachments
+      const results = await localDb.attachments
         .where('taskId').equals(taskId)
         .and(a => a.date === date && a.store === store)
         .toArray();
@@ -59,7 +78,7 @@ export function AttachmentSection({
         createdAt: Date.now()
       };
 
-      await db.attachments.add(newAttachment);
+      await localDb.attachments.add(newAttachment);
       await loadAttachments();
       
       const newIds = [...attachments.map(a => a.id), id];
@@ -86,7 +105,7 @@ export function AttachmentSection({
         createdAt: Date.now()
       };
 
-      await db.attachments.add(newAttachment);
+      await localDb.attachments.add(newAttachment);
       await loadAttachments();
       
       const newIds = [...attachments.map(a => a.id), id];
@@ -99,7 +118,7 @@ export function AttachmentSection({
   const removeAttachment = async (id: string) => {
     if (!confirm('Eliminar este anexo?')) return;
     try {
-      await db.attachments.delete(id);
+      await localDb.attachments.delete(id);
       await loadAttachments();
       
       const newIds = attachments.filter(a => a.id !== id).map(a => a.id);

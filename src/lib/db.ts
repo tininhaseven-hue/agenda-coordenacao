@@ -1,23 +1,16 @@
-import { createClient } from '@libsql/client';
-import path from 'path';
-import fs from 'fs';
+import { createClient, type Client } from '@libsql/client';
 
 const isVercel = process.env.VERCEL === '1';
 const tursoUrl = process.env.TURSO_CONNECTION_URL;
 const tursoToken = process.env.TURSO_AUTH_TOKEN;
 
-// Local DB path (only for local dev)
-const dbPath = path.join(process.cwd(), 'data');
-if (!isVercel && !fs.existsSync(dbPath)) {
-  fs.mkdirSync(dbPath, { recursive: true });
-}
-
-let _rawClient: any = null;
+let _rawClient: Client | null = null;
 
 function getClient() {
   if (!_rawClient) {
     _rawClient = createClient({
-      url: tursoUrl || `file:${path.join(dbPath, 'agenda.db')}`,
+      // No Vercel em produção, usamos o Turso. Localmente usamos um ficheiro.
+      url: tursoUrl || 'file:agenda.db',
       authToken: tursoToken,
     });
   }
@@ -37,10 +30,7 @@ const db = {
 };
 
 async function initDb() {
-  if (isVercel && !process.env.TURSO_CONNECTION_URL) {
-    console.warn('Skipping initDb during build/runtime because TURSO_CONNECTION_URL is missing.');
-    return;
-  }
+  if (isMock) return;
 
   try {
     // Sincronização Genérica baseada em Chaves (espelha LocalStorage)
@@ -52,7 +42,7 @@ async function initDb() {
       );
     `);
 
-    // Tabela para os Projetos (para facilitação de filtros se necessário no futuro)
+    // Tabela para os Projetos
     await db.execute(`
       CREATE TABLE IF NOT EXISTS Projects (
         id TEXT PRIMARY KEY,
