@@ -212,9 +212,29 @@ export function AccessGate({ children }: AccessGateProps) {
         fontSize: '0.7rem',
         border: '1px solid #334155'
       }}>
-        <h3 style={{ color: '#3b82f6', marginBottom: '0.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.3rem' }}>
-          Diagnóstico: Chaves Encontradas ({Object.keys(localStorage).length})
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.3rem' }}>
+          <h3 style={{ color: '#3b82f6', margin: 0 }}>
+            Diagnóstico: Chaves Encontradas ({Object.keys(localStorage).length})
+          </h3>
+          <button 
+            onClick={() => {
+              localStorage.removeItem('initial_cloud_sync_done');
+              autoMigrateToCloud(setSyncMessage);
+            }}
+            style={{
+              padding: '0.2rem 0.5rem',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.25rem',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '0.6rem'
+            }}
+          >
+            Forçar Sincronização Total
+          </button>
+        </div>
         <div style={{ maxHeight: '150px', overflowY: 'auto', color: '#94a3b8' }}>
           {Object.keys(localStorage).length > 0 ? (
             Object.keys(localStorage).sort().map(key => (
@@ -227,6 +247,7 @@ export function AccessGate({ children }: AccessGateProps) {
           )}
         </div>
       </div>
+
     </div>
   );
 }
