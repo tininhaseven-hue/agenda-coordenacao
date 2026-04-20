@@ -97,8 +97,29 @@ export function AccessGate({ children }: AccessGateProps) {
       justifyContent: 'center',
       zIndex: 9999,
       fontFamily: 'sans-serif',
-      color: 'white'
+      color: 'white',
+      overflowY: 'auto',
+      padding: '2rem 0'
     }}>
+      {syncMessage && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          backgroundColor: '#3b82f6',
+          color: 'white',
+          padding: '0.75rem',
+          textAlign: 'center',
+          fontSize: '0.9rem',
+          fontWeight: 'bold',
+          zIndex: 10001,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+        }}>
+          {syncMessage}
+        </div>
+      )}
+
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Agenda de Coordenação</h1>
         <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Introduza o PIN para aceder</p>
@@ -124,7 +145,8 @@ export function AccessGate({ children }: AccessGateProps) {
         display: 'grid', 
         gridTemplateColumns: 'repeat(3, 1fr)', 
         gap: '1rem',
-        maxWidth: '280px'
+        maxWidth: '280px',
+        marginBottom: '3rem'
       }}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
           <button 
@@ -178,7 +200,34 @@ export function AccessGate({ children }: AccessGateProps) {
         </button>
       </div>
 
-      {error && <p style={{ color: '#ef4444', marginTop: '1rem', fontSize: '0.875rem' }}>PIN Incorreto</p>}
+      {error && <p style={{ color: '#ef4444', marginBottom: '2rem', fontSize: '0.875rem' }}>PIN Incorreto</p>}
+
+      {/* PAINEL DE DIAGNÓSTICO TEMPORÁRIO */}
+      <div style={{ 
+        width: '90%', 
+        maxWidth: '400px', 
+        background: '#1e293b', 
+        padding: '1rem', 
+        borderRadius: '0.5rem',
+        fontSize: '0.7rem',
+        border: '1px solid #334155'
+      }}>
+        <h3 style={{ color: '#3b82f6', marginBottom: '0.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.3rem' }}>
+          Diagnóstico: Chaves Encontradas ({Object.keys(localStorage).length})
+        </h3>
+        <div style={{ maxHeight: '150px', overflowY: 'auto', color: '#94a3b8' }}>
+          {Object.keys(localStorage).length > 0 ? (
+            Object.keys(localStorage).sort().map(key => (
+              <div key={key} style={{ padding: '0.2rem 0', borderBottom: '1px solid #0f172a' }}>
+                • {key}
+              </div>
+            ))
+          ) : (
+            <div style={{ color: '#ef4444' }}>Não foram encontrados nenhuns dados guardados neste navegador.</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
+
