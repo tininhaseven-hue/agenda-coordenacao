@@ -12,6 +12,7 @@ export function AccessGate({ children }: AccessGateProps) {
   const [pin, setPin] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   // O PIN deve preferencialmente vir de uma variável de ambiente na Vercel
