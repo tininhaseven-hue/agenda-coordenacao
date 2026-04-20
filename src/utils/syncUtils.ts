@@ -48,8 +48,9 @@ export async function pullFromCloud() {
 export async function autoMigrateToCloud(onProgress?: (msg: string) => void) {
   if (typeof window === 'undefined') return;
   
-  const isMigrated = localStorage.getItem('initial_cloud_sync_done');
-  if (isMigrated === 'true') return;
+  // Temporariamente removido para forçar a sincronização caso tenha falhado antes
+  // const isMigrated = localStorage.getItem('initial_cloud_sync_done');
+  // if (isMigrated === 'true') return;
 
   const allKeys = Object.keys(localStorage);
   const keysToSync = allKeys.filter(key => 
@@ -67,26 +68,34 @@ export async function autoMigrateToCloud(onProgress?: (msg: string) => void) {
   );
 
   if (keysToSync.length === 0) {
-    localStorage.setItem('initial_cloud_sync_done', 'true');
+    console.log('Nenhum dado local encontrado para sincronizar.');
     return;
   }
 
   console.log(`Detectadas ${keysToSync.length} chaves para migração.`);
-  onProgress?.(`A iniciar migração de ${keysToSync.length} itens...`);
+  onProgress?.(`A sincronizar o seu histórico (${keysToSync.length} itens)...`);
   
-  let count = 0;
-  for (const key of keysToSync) {
-    const value = localStorage.getItem(key);
-    if (value) {
-      count++;
-      onProgress?.(`A sincronizar ${count}/${keysToSync.length}...`);
-      await pushToCloud(key, value);
+  try {
+    let count = 0;
+    for (const key of keysToSync) {
+      const value = localStorage.getItem(key);
+      if (value) {
+        count++;
+        if (count % 5 === 0 || count === keysToSync.length) {
+          onProgress?.(`Sincronização em curso: ${count}/${keysToSync.length}...`);
+        }
+        await pushToCloud(key, value);
+      }
     }
+
+    localStorage.setItem('initial_cloud_sync_done', 'true');
+    onProgress?.('Sincronização concluída! Pode agora ver no telemóvel.');
+    
+    // Esconder a barra após 3 segundos
+    setTimeout(() => onProgress?.(''), 3000);
+    
+  } catch (error: any) {
+    console.error('Falha na migração:', error);
+    onProgress?.(`Erro na sincronização: ${error.message || 'Verifique a ligação'}`);
   }
-
-  localStorage.setItem('initial_cloud_sync_done', 'true');
-  onProgress?.('Sincronização concluída com sucesso!');
-  console.log('Migração automática concluída!');
 }
-
-
