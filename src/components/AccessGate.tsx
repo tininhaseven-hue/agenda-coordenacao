@@ -12,7 +12,7 @@ export function AccessGate({ children }: AccessGateProps) {
   const [pin, setPin] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [error, setError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   // O PIN deve preferencialmente vir de uma variável de ambiente na Vercel
   const CORRECT_PIN = process.env.NEXT_PUBLIC_ACCESS_PIN || "3955"; 
@@ -22,7 +22,7 @@ export function AccessGate({ children }: AccessGateProps) {
     const authStatus = localStorage.getItem('agenda_access_granted');
     if (authStatus === 'true') {
       setIsAuthorized(true);
-      autoMigrateToCloud(); // Sincronização automática silenciosa
+      autoMigrateToCloud(setSyncMessage); // Sincronização automática silenciosa
     }
     setIsLoading(false);
   }, []);
@@ -38,7 +38,7 @@ export function AccessGate({ children }: AccessGateProps) {
       if (newPin === CORRECT_PIN) {
         localStorage.setItem('agenda_access_granted', 'true');
         setIsAuthorized(true);
-        autoMigrateToCloud(); // Sincronização automática silenciosa
+        autoMigrateToCloud(setSyncMessage); // Sincronização automática silenciosa
       } else {
         setTimeout(() => {
           setPin('');
@@ -56,8 +56,31 @@ export function AccessGate({ children }: AccessGateProps) {
   if (isLoading) return null;
 
   if (isAuthorized) {
-    return <>{children}</>;
+    return (
+      <>
+        {syncMessage && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            padding: '0.5rem',
+            textAlign: 'center',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            zIndex: 10000,
+            transition: 'all 0.5s'
+          }}>
+            {syncMessage}
+          </div>
+        )}
+        {children}
+      </>
+    );
   }
+
 
   return (
     <div style={{

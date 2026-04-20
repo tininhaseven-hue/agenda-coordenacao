@@ -45,21 +45,23 @@ export async function pullFromCloud() {
   return null;
 }
 
-export async function autoMigrateToCloud() {
+export async function autoMigrateToCloud(onProgress?: (msg: string) => void) {
   if (typeof window === 'undefined') return;
   
   const isMigrated = localStorage.getItem('initial_cloud_sync_done');
   if (isMigrated === 'true') return;
 
-  console.log('Iniciando migração automática para a nuvem...');
-  
-  const keysToSync = Object.keys(localStorage).filter(key => 
+  const allKeys = Object.keys(localStorage);
+  const keysToSync = allKeys.filter(key => 
     key.startsWith('routines_') ||
     key.startsWith('customTasks_') ||
     key.startsWith('project_executions_') ||
     key.startsWith('performance_') ||
     key.startsWith('visits_') ||
     key.startsWith('daily_progress_') ||
+    key.startsWith('sales_') ||
+    key.startsWith('budgets_') ||
+    key.startsWith('notes_') ||
     key === 'projects_global' ||
     key === 'rescheduled_index'
   );
@@ -69,15 +71,22 @@ export async function autoMigrateToCloud() {
     return;
   }
 
-  // Sincronizar sequencialmente para garantir integridade
+  console.log(`Detectadas ${keysToSync.length} chaves para migração.`);
+  onProgress?.(`A iniciar migração de ${keysToSync.length} itens...`);
+  
+  let count = 0;
   for (const key of keysToSync) {
     const value = localStorage.getItem(key);
     if (value) {
+      count++;
+      onProgress?.(`A sincronizar ${count}/${keysToSync.length}...`);
       await pushToCloud(key, value);
     }
   }
 
   localStorage.setItem('initial_cloud_sync_done', 'true');
-  console.log('Migração automática concluída com sucesso!');
+  onProgress?.('Sincronização concluída com sucesso!');
+  console.log('Migração automática concluída!');
 }
+
 
