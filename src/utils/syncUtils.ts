@@ -44,3 +44,40 @@ export async function pullFromCloud() {
   }
   return null;
 }
+
+export async function autoMigrateToCloud() {
+  if (typeof window === 'undefined') return;
+  
+  const isMigrated = localStorage.getItem('initial_cloud_sync_done');
+  if (isMigrated === 'true') return;
+
+  console.log('Iniciando migração automática para a nuvem...');
+  
+  const keysToSync = Object.keys(localStorage).filter(key => 
+    key.startsWith('routines_') ||
+    key.startsWith('customTasks_') ||
+    key.startsWith('project_executions_') ||
+    key.startsWith('performance_') ||
+    key.startsWith('visits_') ||
+    key.startsWith('daily_progress_') ||
+    key === 'projects_global' ||
+    key === 'rescheduled_index'
+  );
+
+  if (keysToSync.length === 0) {
+    localStorage.setItem('initial_cloud_sync_done', 'true');
+    return;
+  }
+
+  // Sincronizar sequencialmente para garantir integridade
+  for (const key of keysToSync) {
+    const value = localStorage.getItem(key);
+    if (value) {
+      await pushToCloud(key, value);
+    }
+  }
+
+  localStorage.setItem('initial_cloud_sync_done', 'true');
+  console.log('Migração automática concluída com sucesso!');
+}
+
