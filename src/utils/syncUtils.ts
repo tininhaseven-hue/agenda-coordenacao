@@ -54,18 +54,12 @@ export async function autoMigrateToCloud(onProgress?: (msg: string) => void) {
 
   const allKeys = Object.keys(localStorage);
   const keysToSync = allKeys.filter(key => 
-    key.startsWith('routines_') ||
-    key.startsWith('customTasks_') ||
-    key.startsWith('project_executions_') ||
-    key.startsWith('performance_') ||
-    key.startsWith('visits_') ||
-    key.startsWith('daily_progress_') ||
-    key.startsWith('sales_') ||
-    key.startsWith('budgets_') ||
-    key.startsWith('notes_') ||
-    key === 'projects_global' ||
-    key === 'rescheduled_index'
+    !key.startsWith('__next') && 
+    !key.startsWith('vercel') &&
+    key !== 'agenda_access_granted' &&
+    key !== 'initial_cloud_sync_done'
   );
+
 
   if (keysToSync.length === 0) {
     console.log('Nenhum dado local encontrado para sincronizar.');
