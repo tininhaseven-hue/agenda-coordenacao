@@ -572,14 +572,16 @@ body {
 .header-with-logo {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
+  flex-wrap: nowrap; /* Mantém logo e texto na mesma linha */
 }
 
 .app-logo {
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
   border-radius: var(--radius-md);
+  flex-shrink: 0; /* Garante que o logo não encolha em telas pequenas */
 }
 
 .header-text-content .page-title {

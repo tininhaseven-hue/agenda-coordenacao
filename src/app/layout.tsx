@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Image from "next/image";
 import "./globals.css";
-import logoImg from "../../public/logo.png";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
@@ -22,10 +21,10 @@ export default function RootLayout({
         <div className="container">
           <header className="mb-6 no-print header-with-logo">
             <Image 
-              src={logoImg} 
+              src="/logo.png" 
               alt="Logotipo ANA" 
-              width={64} 
-              height={64} 
+              width={60} 
+              height={60} 
               className="app-logo"
               priority
             />
