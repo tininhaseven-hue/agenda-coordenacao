@@ -25,9 +25,9 @@ export function usePerformance(currentMonthYear: string) { // Format: YYYY-MM
     });
     // Auto-seed cloud if empty (Emergency Recovery)
     const checkAndSeedCloud = async () => {
-      const isCloud = window.location.hostname.includes('vercel.app');
-      if (isCloud && currentMonthYear === '2026-04' && keys.length === 0) {
-        console.log('Detectada falta de histórico de Abril. A recuperar...');
+      // Remover restrição de hostname para garantir que entra em qualquer lado que esteja vazio
+      if (currentMonthYear === '2026-04' && keys.length === 0) {
+        console.log('Recuperando histórico de Abril...');
         const aprilData: Record<string, Record<string, DayKPIData>> = {
           "2026-04-01": { "Aveiro Norte": { "sales": 639.84, "transactions": 132 }, "Aveiro Sul": { "sales": 458.86, "transactions": 109 }, "Ovar Norte": { "sales": 88.18, "transactions": 39 }, "Ovar Sul": { "sales": 196.19, "transactions": 65 }, "Vagos Norte": { "sales": 1142.34, "transactions": 222 }, "Vagos Sul": { "sales": 682.67, "transactions": 161 }, "Vilar do Paraíso Norte": { "sales": 80.59, "transactions": 48 } },
           "2026-04-02": { "Aveiro Norte": { "sales": 926.12, "transactions": 191 }, "Aveiro Sul": { "sales": 686.36, "transactions": 137 }, "Ovar Norte": { "sales": 232.90, "transactions": 74 }, "Ovar Sul": { "sales": 178.32, "transactions": 74 }, "Vagos Norte": { "sales": 1914.97, "transactions": 350 }, "Vagos Sul": { "sales": 904.85, "transactions": 166 }, "Vilar do Paraíso Norte": { "sales": 67.54, "transactions": 44 } },
@@ -48,11 +48,14 @@ export function usePerformance(currentMonthYear: string) { // Format: YYYY-MM
           const key = `sales_${date}`;
           const value = JSON.stringify(dayData);
           localStorage.setItem(key, value);
-          await pushToCloud(key, value);
+          await pushToCloud(key, value).catch(err => {
+            console.error('Falha no auto-seed de uma chave:', err);
+          });
         }
         setDailyData(aprilData);
       }
     };
+
     checkAndSeedCloud();
 
     setIsLoaded(true);

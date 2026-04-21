@@ -62,6 +62,25 @@ export function AccessGate({ children }: AccessGateProps) {
     const projectKeys = allKeys.filter(k => k.startsWith('project_')).length;
     const routineKeys = allKeys.filter(k => k.startsWith('routines_')).length;
 
+    const testDatabaseConnection = async () => {
+      setSyncMessage('A testar ligação à nuvem...');
+      try {
+        const response = await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'ping_test', value: Date.now().toString() })
+        });
+        if (response.ok) {
+          setSyncMessage('Ligação OK! A base de dados está a responder.');
+        } else {
+          setSyncMessage(`Erro de Ligação: ${response.status} - Verifique credenciais Vercel`);
+        }
+      } catch (err) {
+        setSyncMessage('Falha crítica: O servidor não responde. Verifique a Internet.');
+      }
+      setTimeout(() => setSyncMessage(null), 5000);
+    };
+
     return (
       <>
         {syncMessage && (
@@ -101,31 +120,46 @@ export function AccessGate({ children }: AccessGateProps) {
           color: '#94a3b8'
         }}>
           <div>
-            <strong>📦 Dados no Navegador:</strong> 
+            <strong>📦 Estado:</strong> 
             <span style={{ color: salesKeys > 0 ? '#3b82f6' : '#ef4444', marginLeft: '5px' }}>Vendas: {salesKeys}</span> | 
-            <span style={{ color: projectKeys > 0 ? '#3b82f6' : '#94a3b8', marginLeft: '5px' }}>Projetos: {projectKeys}</span> | 
-            <span style={{ color: routineKeys > 0 ? '#3b82f6' : '#94a3b8', marginLeft: '5px' }}>Rotinas: {routineKeys}</span>
+            <span style={{ color: '#94a3b8', marginLeft: '5px' }}>Host: {window.location.hostname}</span>
           </div>
-          <button 
-            onClick={() => {
-              localStorage.removeItem('initial_cloud_sync_done');
-              autoMigrateToCloud(setSyncMessage);
-            }}
-            style={{
-              padding: '2px 10px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Sincronizar Histórico Agora
-          </button>
+          <div style={{ display: 'flex', gap: '5px' }}>
+            <button 
+              onClick={testDatabaseConnection}
+              style={{
+                padding: '2px 10px',
+                backgroundColor: '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Testar DB
+            </button>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('initial_cloud_sync_done');
+                autoMigrateToCloud(setSyncMessage);
+              }}
+              style={{
+                padding: '2px 10px',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Forçar Sincronização
+            </button>
+          </div>
         </div>
       </>
     );
   }
+
 
 
   return (
