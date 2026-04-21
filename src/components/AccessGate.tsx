@@ -83,13 +83,14 @@ export function AccessGate({ children }: AccessGateProps) {
           {/* LED de Diagnóstico */}
           <div 
             title={syncError || (syncStatus === 'success' ? 'Sincronizado' : 'A aguardar...')}
+            onClick={() => alert(`Status Sinc: ${syncStatus}\n${syncError || (syncStatus === 'success' ? 'Tudo OK' : 'Sem erros detetados ainda.')}`)}
             style={{
-              width: '6px',
-              height: '6px',
+              width: '8px',
+              height: '8px',
               borderRadius: '50%',
               backgroundColor: syncStatus === 'success' ? '#22c55e' : syncStatus === 'error' ? '#ef4444' : '#64748b',
               boxShadow: syncStatus === 'success' ? '0 0 8px #22c55e' : syncStatus === 'error' ? '0 0 8px #ef4444' : 'none',
-              cursor: 'help'
+              cursor: 'pointer'
             }}
           />
           
