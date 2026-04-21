@@ -49,6 +49,7 @@ export async function fullTwoWaySync() {
   if (typeof window === 'undefined') return;
   
   console.log('Iniciando sincronização completa com a nuvem...');
+  let dataUpdated = false;
 
   try {
     // 1. PULL: Ir buscar dados à nuvem
@@ -56,10 +57,13 @@ export async function fullTwoWaySync() {
     if (cloudData) {
       console.log(`Dados da nuvem recebidos (${Object.keys(cloudData).length} itens).`);
       Object.entries(cloudData).forEach(([key, value]) => {
-        // Só guardamos se não existir localmente (para não sobrepor o que o utilizador está a escrever agora)
-        // Ou se preferir que a nuvem seja a verdade absoluta, remova o check do getItem
-        if (!localStorage.getItem(key)) {
+        const localValue = localStorage.getItem(key);
+        // Sobrescrevemos se local for nulo, vazio ou '{}' (default inicial)
+        const isEmptyLocal = !localValue || localValue === '{}';
+        
+        if (isEmptyLocal && value !== '{}') {
           localStorage.setItem(key, value);
+          dataUpdated = true;
         }
       });
     }
@@ -75,8 +79,7 @@ export async function fullTwoWaySync() {
 
     for (const key of keysToSync) {
       const value = localStorage.getItem(key);
-      if (value) {
-        // Só enviamos se não estiver já na nuvem com o mesmo valor (opcional, mas poupa bateria/dados)
+      if (value && value !== '{}') {
         if (!cloudData || cloudData[key] !== value) {
           await pushToCloud(key, value);
         }
@@ -85,6 +88,12 @@ export async function fullTwoWaySync() {
 
     localStorage.setItem('initial_cloud_sync_done', 'true');
     console.log('Sincronização bidirecional concluída com sucesso.');
+
+    // 3. Forçar Refresh se dados novos chegaram
+    if (dataUpdated) {
+      console.log('Dados novos detetados! A atualizar página...');
+      window.location.reload();
+    }
     
   } catch (error: any) {
     console.error('Falha na sincronização bidirecional:', error);

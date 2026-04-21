@@ -5,9 +5,11 @@ export async function GET(req: NextRequest) {
   try {
     await initDb();
     
-    // Autenticação básica via Header
+    // Autenticação robusta: aceita as duas variantes de variáveis de ambiente
     const auth = req.headers.get('x-access-pin');
-    if (auth !== process.env.ACCESS_PIN && process.env.NODE_ENV === 'production') {
+    const validPin = process.env.ACCESS_PIN || process.env.NEXT_PUBLIC_ACCESS_PIN || "3955";
+    
+    if (auth !== validPin && process.env.NODE_ENV === 'production') {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
@@ -30,9 +32,11 @@ export async function POST(req: NextRequest) {
   try {
     await initDb();
 
-    // Autenticação básica via Header
+    // Autenticação robusta: aceita as duas variantes de variáveis de ambiente
     const auth = req.headers.get('x-access-pin');
-    if (auth !== process.env.ACCESS_PIN && process.env.NODE_ENV === 'production') {
+    const validPin = process.env.ACCESS_PIN || process.env.NEXT_PUBLIC_ACCESS_PIN || "3955";
+    
+    if (auth !== validPin && process.env.NODE_ENV === 'production') {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
