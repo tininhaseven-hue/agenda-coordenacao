@@ -55,9 +55,39 @@ export function AccessGate({ children }: AccessGateProps) {
 
   if (isLoading) return null;
 
+  const handleLogout = () => {
+    localStorage.removeItem('agenda_access_granted');
+    setIsAuthorized(false);
+    setPin('');
+  };
+
   if (isAuthorized) {
     return (
-      <>{children}</>
+      <>
+        <button 
+          onClick={handleLogout}
+          style={{
+            position: 'fixed',
+            top: '0.75rem',
+            right: '1rem',
+            zIndex: 10002,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            color: '#94a3b8',
+            border: '1px solid #334155',
+            borderRadius: '4px',
+            padding: '4px 12px',
+            fontSize: '0.75rem',
+            cursor: 'pointer',
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
+          onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+        >
+          Sair
+        </button>
+        {children}
+      </>
     );
   }
 
