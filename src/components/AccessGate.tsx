@@ -57,6 +57,11 @@ export function AccessGate({ children }: AccessGateProps) {
   if (isLoading) return null;
 
   if (isAuthorized) {
+    const allKeys = Object.keys(localStorage);
+    const salesKeys = allKeys.filter(k => k.startsWith('sales_')).length;
+    const projectKeys = allKeys.filter(k => k.startsWith('project_')).length;
+    const routineKeys = allKeys.filter(k => k.startsWith('routines_')).length;
+
     return (
       <>
         {syncMessage && (
@@ -67,17 +72,57 @@ export function AccessGate({ children }: AccessGateProps) {
             width: '100%',
             backgroundColor: '#3b82f6',
             color: 'white',
-            padding: '0.5rem',
+            padding: '0.75rem',
             textAlign: 'center',
-            fontSize: '0.75rem',
+            fontSize: '0.9rem',
             fontWeight: 'bold',
-            zIndex: 10000,
-            transition: 'all 0.5s'
+            zIndex: 10001,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
           }}>
             {syncMessage}
           </div>
         )}
         {children}
+        
+        {/* PAINEL DE DIAGNÓSTICO SEMPRE VISÍVEL (ÚTIL PARA MIGRAÇÃO) */}
+        <div style={{ 
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          background: '#0f172a', 
+          padding: '0.5rem', 
+          fontSize: '0.65rem',
+          borderTop: '2px solid #3b82f6',
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          zIndex: 9999,
+          color: '#94a3b8'
+        }}>
+          <div>
+            <strong>📦 Dados no Navegador:</strong> 
+            <span style={{ color: salesKeys > 0 ? '#3b82f6' : '#ef4444', marginLeft: '5px' }}>Vendas: {salesKeys}</span> | 
+            <span style={{ color: projectKeys > 0 ? '#3b82f6' : '#94a3b8', marginLeft: '5px' }}>Projetos: {projectKeys}</span> | 
+            <span style={{ color: routineKeys > 0 ? '#3b82f6' : '#94a3b8', marginLeft: '5px' }}>Rotinas: {routineKeys}</span>
+          </div>
+          <button 
+            onClick={() => {
+              localStorage.removeItem('initial_cloud_sync_done');
+              autoMigrateToCloud(setSyncMessage);
+            }}
+            style={{
+              padding: '2px 10px',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Sincronizar Histórico Agora
+          </button>
+        </div>
       </>
     );
   }
