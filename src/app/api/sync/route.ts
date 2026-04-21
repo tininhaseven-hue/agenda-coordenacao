@@ -30,7 +30,8 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Sync GET error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error.message || 'Erro desconhecido no servidor';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 

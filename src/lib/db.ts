@@ -33,27 +33,14 @@ async function initDb() {
   if (isMock) return;
 
   try {
-    // Sincronização Genérica baseada em Chaves (espelha LocalStorage)
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS SyncData (
-        key TEXT PRIMARY KEY,
-        value TEXT,
-        updatedAt INTEGER
-      );
-    `);
-
-    // Tabela para os Projetos
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS Projects (
-        id TEXT PRIMARY KEY,
-        data TEXT,
-        updatedAt INTEGER
-      );
-    `);
-
-    console.log('Agenda: Database initialized');
-  } catch (e) {
+    // Criar tabelas individualmente para evitar erros de execução em lote
+    await db.execute("CREATE TABLE IF NOT EXISTS SyncData (key TEXT PRIMARY KEY, value TEXT, updatedAt INTEGER)");
+    await db.execute("CREATE TABLE IF NOT EXISTS Projects (id TEXT PRIMARY KEY, data TEXT, updatedAt INTEGER)");
+    
+    console.log('Agenda: Database initialized successfully');
+  } catch (e: any) {
     console.error('initDb failed:', e);
+    throw new Error(`Erro na inicialização da BD: ${e.message}`);
   }
 }
 
