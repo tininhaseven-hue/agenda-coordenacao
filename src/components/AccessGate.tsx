@@ -13,7 +13,6 @@ export function AccessGate({ children }: AccessGateProps) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   // O PIN deve preferencialmente vir de uma variável de ambiente na Vercel
   const CORRECT_PIN = process.env.NEXT_PUBLIC_ACCESS_PIN || "3955"; 
@@ -23,7 +22,7 @@ export function AccessGate({ children }: AccessGateProps) {
     const authStatus = localStorage.getItem('agenda_access_granted');
     if (authStatus === 'true') {
       setIsAuthorized(true);
-      autoMigrateToCloud(setSyncMessage); // Sincronização automática silenciosa
+      autoMigrateToCloud(); // Sincronização automática silenciosa
     }
     setIsLoading(false);
   }, []);
@@ -39,7 +38,7 @@ export function AccessGate({ children }: AccessGateProps) {
       if (newPin === CORRECT_PIN) {
         localStorage.setItem('agenda_access_granted', 'true');
         setIsAuthorized(true);
-        autoMigrateToCloud(setSyncMessage); // Sincronização automática silenciosa
+        autoMigrateToCloud(); // Sincronização automática silenciosa
       } else {
         setTimeout(() => {
           setPin('');

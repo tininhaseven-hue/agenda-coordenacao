@@ -45,7 +45,7 @@ export async function pullFromCloud() {
   return null;
 }
 
-export async function autoMigrateToCloud(onProgress?: (msg: string) => void) {
+export async function autoMigrateToCloud() {
   if (typeof window === 'undefined') return;
   
   // Temporariamente removido para forçar a sincronização caso tenha falhado antes
@@ -67,29 +67,19 @@ export async function autoMigrateToCloud(onProgress?: (msg: string) => void) {
   }
 
   console.log(`Detectadas ${keysToSync.length} chaves para migração.`);
-  onProgress?.(`A sincronizar o seu histórico (${keysToSync.length} itens)...`);
   
   try {
-    let count = 0;
     for (const key of keysToSync) {
       const value = localStorage.getItem(key);
       if (value) {
-        count++;
-        if (count % 5 === 0 || count === keysToSync.length) {
-          onProgress?.(`Sincronização em curso: ${count}/${keysToSync.length}...`);
-        }
         await pushToCloud(key, value);
       }
     }
 
     localStorage.setItem('initial_cloud_sync_done', 'true');
-    onProgress?.('Sincronização concluída! Pode agora ver no telemóvel.');
-    
-    // Esconder a barra após 3 segundos
-    setTimeout(() => onProgress?.(''), 3000);
+    console.log('Sincronização silenciosa concluída.');
     
   } catch (error: any) {
     console.error('Falha na migração:', error);
-    onProgress?.(`Erro na sincronização: ${error.message || 'Verifique a ligação'}`);
   }
 }
