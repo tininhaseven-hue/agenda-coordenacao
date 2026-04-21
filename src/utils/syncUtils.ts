@@ -45,41 +45,48 @@ export async function pullFromCloud() {
   return null;
 }
 
-export async function autoMigrateToCloud() {
+export async function fullTwoWaySync() {
   if (typeof window === 'undefined') return;
   
-  // Temporariamente removido para forçar a sincronização caso tenha falhado antes
-  // const isMigrated = localStorage.getItem('initial_cloud_sync_done');
-  // if (isMigrated === 'true') return;
+  console.log('Iniciando sincronização completa com a nuvem...');
 
-  const allKeys = Object.keys(localStorage);
-  const keysToSync = allKeys.filter(key => 
-    !key.startsWith('__next') && 
-    !key.startsWith('vercel') &&
-    key !== 'agenda_access_granted' &&
-    key !== 'initial_cloud_sync_done'
-  );
-
-
-  if (keysToSync.length === 0) {
-    console.log('Nenhum dado local encontrado para sincronizar.');
-    return;
-  }
-
-  console.log(`Detectadas ${keysToSync.length} chaves para migração.`);
-  
   try {
+    // 1. PULL: Ir buscar dados à nuvem
+    const cloudData = await pullFromCloud();
+    if (cloudData) {
+      console.log(`Dados da nuvem recebidos (${Object.keys(cloudData).length} itens).`);
+      Object.entries(cloudData).forEach(([key, value]) => {
+        // Só guardamos se não existir localmente (para não sobrepor o que o utilizador está a escrever agora)
+        // Ou se preferir que a nuvem seja a verdade absoluta, remova o check do getItem
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, value);
+        }
+      });
+    }
+
+    // 2. PUSH: Enviar dados locais para a nuvem
+    const allKeys = Object.keys(localStorage);
+    const keysToSync = allKeys.filter(key => 
+      !key.startsWith('__next') && 
+      !key.startsWith('vercel') &&
+      key !== 'agenda_access_granted' &&
+      key !== 'initial_cloud_sync_done'
+    );
+
     for (const key of keysToSync) {
       const value = localStorage.getItem(key);
       if (value) {
-        await pushToCloud(key, value);
+        // Só enviamos se não estiver já na nuvem com o mesmo valor (opcional, mas poupa bateria/dados)
+        if (!cloudData || cloudData[key] !== value) {
+          await pushToCloud(key, value);
+        }
       }
     }
 
     localStorage.setItem('initial_cloud_sync_done', 'true');
-    console.log('Sincronização silenciosa concluída.');
+    console.log('Sincronização bidirecional concluída com sucesso.');
     
   } catch (error: any) {
-    console.error('Falha na migração:', error);
+    console.error('Falha na sincronização bidirecional:', error);
   }
 }

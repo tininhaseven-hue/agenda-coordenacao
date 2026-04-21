@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { autoMigrateToCloud } from '@/utils/syncUtils';
+import { fullTwoWaySync } from '@/utils/syncUtils';
 
 
 interface AccessGateProps {
@@ -22,7 +22,7 @@ export function AccessGate({ children }: AccessGateProps) {
     const authStatus = localStorage.getItem('agenda_access_granted');
     if (authStatus === 'true') {
       setIsAuthorized(true);
-      autoMigrateToCloud(); // Sincronização automática silenciosa
+      fullTwoWaySync(); // Sincronização automática silenciosa (Pull + Push)
     }
     setIsLoading(false);
   }, []);
@@ -38,7 +38,7 @@ export function AccessGate({ children }: AccessGateProps) {
       if (newPin === CORRECT_PIN) {
         localStorage.setItem('agenda_access_granted', 'true');
         setIsAuthorized(true);
-        autoMigrateToCloud(); // Sincronização automática silenciosa
+        fullTwoWaySync(); // Sincronização automática silenciosa (Pull + Push)
       } else {
         setTimeout(() => {
           setPin('');
