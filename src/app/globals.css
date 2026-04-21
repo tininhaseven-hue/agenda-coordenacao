@@ -3,8 +3,8 @@
 :root {
   --bg-color: #f8fafc;
   --surface-color: #ffffff;
-  --primary-color: #f2ae1c; /* Amarelo da imagem SOL */
-  --primary-hover: #dea019;
+  --primary-color: #FF7300; /* Laranja vibrante do novo logo AMA */
+  --primary-hover: #e66700;
   --text-main: #1e293b;
   --text-muted: #64748b;
   --border-color: #e2e8f0;
@@ -566,4 +566,27 @@ body {
 
 .report-row:active {
   background-color: #e2e8f0 !important;
+}
+
+/* Header Logo Styles */
+.header-with-logo {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.app-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+.header-text-content .page-title {
+  margin-bottom: 0;
+}
+
+.header-text-content .page-subtitle {
+  margin-bottom: 0;
+  margin-top: 0.25rem;
 }

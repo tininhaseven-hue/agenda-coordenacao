@@ -20,6 +20,12 @@ export async function pushToCloud(key: string, value: any) {
     
     if (!response.ok) {
       console.error('Sync push failed:', await response.text());
+    } else {
+      const result = await response.json();
+      // Gravamos localmente a hora exata a que empurrámos os dados, baseada na reposta do servidor para evitar desvios de relógio
+      if (result.updatedAt) {
+        localStorage.setItem('sync_ts_' + key, result.updatedAt.toString());
+      }
     }
   } catch (error) {
     console.error('Sync push error:', error);
@@ -37,7 +43,7 @@ export async function pullFromCloud() {
 
     if (response.ok) {
       const { data, isMock } = await response.json();
-      return { data: data as Record<string, string>, isMock };
+      return { data: data as Record<string, { value: string, updatedAt: number }>, isMock };
     } else {
       const errorText = await response.text();
       throw new Error(errorText || `Erro ${response.status}`);
@@ -65,12 +71,21 @@ export async function fullTwoWaySync(onStatus?: (status: 'idle' | 'success' | 'e
 
     if (cloudData) {
       console.log(`Dados da nuvem recebidos (${Object.keys(cloudData).length} itens).`);
-      Object.entries(cloudData).forEach(([key, value]) => {
+      Object.entries(cloudData).forEach(([key, cloudItem]) => {
+        const { value: cloudValue, updatedAt: cloudTs } = cloudItem;
+        
         const localValue = localStorage.getItem(key);
         const isEmptyLocal = !localValue || localValue === '{}';
         
-        if (isEmptyLocal && value !== '{}') {
-          localStorage.setItem(key, value);
+        // Verifica se a nuvem é mais recente que o último registo de sincronização que fizemos localmente
+        const localTsStr = localStorage.getItem('sync_ts_' + key);
+        const localTs = localTsStr ? parseInt(localTsStr, 10) : 0;
+        
+        const nuvemMaisRecente = cloudTs > localTs;
+
+        if ((isEmptyLocal && cloudValue !== '{}') || nuvemMaisRecente) {
+          localStorage.setItem(key, cloudValue);
+          localStorage.setItem('sync_ts_' + key, cloudTs.toString());
           dataUpdated = true;
         }
       });
@@ -81,15 +96,27 @@ export async function fullTwoWaySync(onStatus?: (status: 'idle' | 'success' | 'e
     const keysToSync = allKeys.filter(key => 
       !key.startsWith('__next') && 
       !key.startsWith('vercel') &&
+      !key.startsWith('sync_ts_') &&
       key !== 'agenda_access_granted' &&
       key !== 'initial_cloud_sync_done'
     );
 
     for (const key of keysToSync) {
-      const value = localStorage.getItem(key);
-      if (value && value !== '{}') {
-        if (!cloudData || cloudData[key] !== value) {
-          await pushToCloud(key, value);
+      const localValue = localStorage.getItem(key);
+      if (localValue && localValue !== '{}') {
+        const cloudItem = cloudData?.[key];
+        
+        // Se nuvem n tem o dado, ou o local value é diferente E a nuvem não era mais recente
+        if (!cloudItem || cloudItem.value !== localValue) {
+           const localTsStr = localStorage.getItem('sync_ts_' + key);
+           const localTs = localTsStr ? parseInt(localTsStr, 10) : 0;
+           const cloudTs = cloudItem?.updatedAt || 0;
+           
+           // Apenas envia para a cloud se não acabámos de decidir (no PULL acima) que a Cloud era mais nova (pois caso fosse, já teríamos atualizado o localStorage e cloudItem.value === localValue)
+           // Se a cloud estava desatualizada, faz update
+           if (localValue !== cloudItem?.value) {
+              await pushToCloud(key, localValue);
+           }
         }
       }
     }

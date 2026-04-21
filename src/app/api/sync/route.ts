@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db, { initDb } from '@/lib/db';
+import db, { initDb, isMock } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,15 +15,18 @@ export async function GET(req: NextRequest) {
 
     const result = await db.execute('SELECT key, value, updatedAt FROM SyncData');
     
-    // Transformar em objeto Record<string, string>
-    const data: Record<string, string> = {};
+    // Transformar em objeto Record<string, { value: string, updatedAt: number }>
+    const data: Record<string, { value: string, updatedAt: number }> = {};
     result.rows.forEach((row: any) => {
-      data[row.key] = row.value;
+      data[row.key] = {
+        value: row.value,
+        updatedAt: row.updatedAt || 0
+      };
     });
 
     return NextResponse.json({ 
       data, 
-      isMock: isMock() // Informar se estamos em modo mock (falta de URL)
+      isMock // Informar se estamos em modo mock (falta de URL)
     });
   } catch (error: any) {
     console.error('Sync GET error:', error);
