@@ -6,8 +6,15 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "Agenda de Coordenação | Ibersol",
-  description: "Task Manager de Rotinas para Coordenação",
+  title: "Agenda de Coordenação | ANA",
+  description: "Gestão Diária de Rotinas",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({
