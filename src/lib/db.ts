@@ -8,9 +8,13 @@ let _rawClient: Client | null = null;
 
 function getClient() {
   if (!_rawClient) {
+    // Converter libsql:// para https:// automaticamente para maior compatibilidade na nuvem
+    const finalUrl = tursoUrl?.startsWith('libsql://') 
+      ? tursoUrl.replace('libsql://', 'https://') 
+      : tursoUrl || 'file:agenda.db';
+
     _rawClient = createClient({
-      // No Vercel em produção, usamos o Turso. Localmente usamos um ficheiro.
-      url: tursoUrl || 'file:agenda.db',
+      url: finalUrl,
       authToken: tursoToken,
     });
   }
