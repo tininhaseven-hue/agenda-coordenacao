@@ -1,4 +1,5 @@
 "use client";
+// Heartbeat update to trigger Vercel auto-production build
 
 import { useState, useMemo, useEffect } from 'react';
 import { routines } from '@/data/routines';
