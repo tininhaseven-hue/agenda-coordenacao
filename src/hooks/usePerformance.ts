@@ -26,7 +26,6 @@ export function usePerformance(currentMonthYear: string) { // Format: YYYY-MM
     setDailyData(monthData);
     setIsLoaded(true);
   }, [currentMonthYear]);
-ntMonthYear]);
 
   const updateDailySales = (date: string, store: string, data: DayKPIData) => {
     setDailyData(prev => {
