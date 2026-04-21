@@ -13,16 +13,23 @@ export function AccessGate({ children }: AccessGateProps) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   // O PIN deve preferencialmente vir de uma variável de ambiente na Vercel
   const CORRECT_PIN = process.env.NEXT_PUBLIC_ACCESS_PIN || "3955"; 
+
+  const handleSyncStatus = (status: 'idle' | 'success' | 'error', message?: string) => {
+    setSyncStatus(status);
+    if (message) setSyncError(message);
+  };
 
   useEffect(() => {
     // Verificar se já está autorizado neste navegador
     const authStatus = localStorage.getItem('agenda_access_granted');
     if (authStatus === 'true') {
       setIsAuthorized(true);
-      fullTwoWaySync(); // Sincronização automática silenciosa (Pull + Push)
+      fullTwoWaySync(handleSyncStatus); 
     }
     setIsLoading(false);
   }, []);
@@ -38,7 +45,7 @@ export function AccessGate({ children }: AccessGateProps) {
       if (newPin === CORRECT_PIN) {
         localStorage.setItem('agenda_access_granted', 'true');
         setIsAuthorized(true);
-        fullTwoWaySync(); // Sincronização automática silenciosa (Pull + Push)
+        fullTwoWaySync(handleSyncStatus); 
       } else {
         setTimeout(() => {
           setPin('');
@@ -64,28 +71,47 @@ export function AccessGate({ children }: AccessGateProps) {
   if (isAuthorized) {
     return (
       <>
-        <button 
-          onClick={handleLogout}
-          style={{
-            position: 'fixed',
-            top: '0.75rem',
-            right: '1rem',
-            zIndex: 10002,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            color: '#94a3b8',
-            border: '1px solid #334155',
-            borderRadius: '4px',
-            padding: '4px 12px',
-            fontSize: '0.75rem',
-            cursor: 'pointer',
-            backdropFilter: 'blur(4px)',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
-          onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
-        >
-          Sair
-        </button>
+        <div style={{
+          position: 'fixed',
+          top: '0.75rem',
+          right: '1rem',
+          zIndex: 10002,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}>
+          {/* LED de Diagnóstico */}
+          <div 
+            title={syncError || (syncStatus === 'success' ? 'Sincronizado' : 'A aguardar...')}
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: syncStatus === 'success' ? '#22c55e' : syncStatus === 'error' ? '#ef4444' : '#64748b',
+              boxShadow: syncStatus === 'success' ? '0 0 8px #22c55e' : syncStatus === 'error' ? '0 0 8px #ef4444' : 'none',
+              cursor: 'help'
+            }}
+          />
+          
+          <button 
+            onClick={handleLogout}
+            style={{
+              backgroundColor: 'rgba(15, 23, 42, 0.6)',
+              color: '#94a3b8',
+              border: '1px solid #334155',
+              borderRadius: '4px',
+              padding: '4px 12px',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              backdropFilter: 'blur(4px)',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+          >
+            Sair
+          </button>
+        </div>
         {children}
       </>
     );

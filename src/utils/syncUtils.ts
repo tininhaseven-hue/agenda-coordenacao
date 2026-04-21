@@ -36,16 +36,19 @@ export async function pullFromCloud() {
     });
 
     if (response.ok) {
-      const { data } = await response.json();
-      return data as Record<string, string>;
+      const { data, isMock } = await response.json();
+      return { data: data as Record<string, string>, isMock };
+    } else {
+      const errorText = await response.text();
+      throw new Error(errorText || `Erro ${response.status}`);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Sync pull error:', error);
+    throw error;
   }
-  return null;
 }
 
-export async function fullTwoWaySync() {
+export async function fullTwoWaySync(onStatus?: (status: 'idle' | 'success' | 'error', message?: string) => void) {
   if (typeof window === 'undefined') return;
   
   console.log('Iniciando sincronização completa com a nuvem...');
@@ -53,12 +56,17 @@ export async function fullTwoWaySync() {
 
   try {
     // 1. PULL: Ir buscar dados à nuvem
-    const cloudData = await pullFromCloud();
+    const { data: cloudData, isMock } = await pullFromCloud();
+    
+    if (isMock) {
+      onStatus?.('error', 'Servidor Turso não configurado (Falta TURSO_CONNECTION_URL)');
+      return;
+    }
+
     if (cloudData) {
       console.log(`Dados da nuvem recebidos (${Object.keys(cloudData).length} itens).`);
       Object.entries(cloudData).forEach(([key, value]) => {
         const localValue = localStorage.getItem(key);
-        // Sobrescrevemos se local for nulo, vazio ou '{}' (default inicial)
         const isEmptyLocal = !localValue || localValue === '{}';
         
         if (isEmptyLocal && value !== '{}') {
@@ -88,6 +96,7 @@ export async function fullTwoWaySync() {
 
     localStorage.setItem('initial_cloud_sync_done', 'true');
     console.log('Sincronização bidirecional concluída com sucesso.');
+    onStatus?.('success');
 
     // 3. Forçar Refresh se dados novos chegaram
     if (dataUpdated) {
@@ -97,5 +106,6 @@ export async function fullTwoWaySync() {
     
   } catch (error: any) {
     console.error('Falha na sincronização bidirecional:', error);
+    onStatus?.('error', error.message || 'Falha na ligação');
   }
 }

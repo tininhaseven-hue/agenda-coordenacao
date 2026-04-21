@@ -21,7 +21,10 @@ export async function GET(req: NextRequest) {
       data[row.key] = row.value;
     });
 
-    return NextResponse.json({ data });
+    return NextResponse.json({ 
+      data, 
+      isMock: isMock() // Informar se estamos em modo mock (falta de URL)
+    });
   } catch (error: any) {
     console.error('Sync GET error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
