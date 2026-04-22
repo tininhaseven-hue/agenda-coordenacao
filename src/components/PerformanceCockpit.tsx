@@ -552,102 +552,19 @@ export function PerformanceCockpit() {
 
       {activeTab === 'dashboard' && (
         <div className="dashboard-view animate-in">
-                  { name: 'SOL VAGOS', stores: ['Vagos Norte', 'Vagos Sul'] },
-                  { name: 'SOL AVEIRO', stores: ['Aveiro Norte', 'Aveiro Sul'] },
-                  { name: 'SOL OVAR', stores: ['Ovar Norte', 'Ovar Sul'] },
-                  { name: 'VILAR PARAÍSO', stores: ['Vilar do Paraíso Norte'] }
-                ].map(group => {
-                  const groupKpis = kpis.filter(k => group.stores.includes(k.store));
-                  if (groupKpis.length === 0) return null;
-
-                  const subYesterdaySales = groupKpis.reduce((acc, k) => acc + k.yesterdaySales, 0);
-                  const subAccumSales = groupKpis.reduce((acc, k) => acc + k.accumMonthSales, 0);
-                  const subProjectedSales = groupKpis.reduce((acc, k) => acc + k.projectedSales, 0);
-                  const subBudgetSales = groupKpis.reduce((acc, k) => acc + k.budgetSales, 0);
-                  const subAccumTrans = groupKpis.reduce((acc, k) => acc + k.accumMonthTransactions, 0);
-                  const subBudgetTrans = groupKpis.reduce((acc, k) => acc + k.budgetTransactions, 0);
-                  const subBudgetReceipt = subBudgetTrans > 0 ? subBudgetSales / subBudgetTrans : 0;
-                  const subAvgReceipt = subAccumTrans > 0 ? subAccumSales / subAccumTrans : 0;
-
-                  return (
-                    <React.Fragment key={group.name}>
-                      {groupKpis.map(k => (
-                        <tr key={k.store}>
-                          <td className="store-name">{k.store}</td>
-                          <td>{formatCurrency(k.yesterdaySales)}</td>
-                          <td>{formatCurrency(k.accumMonthSales)}</td>
-                          <td>{formatCurrency(k.projectedSales)}</td>
-                          <td>{formatCurrency(k.budgetSales)}</td>
-                          <td>{renderDailyRequired(k.accumMonthSales, k.budgetSales)}</td>
-                          <td style={{ color: 'white', backgroundColor: getPOColor(k.projectedSales, k.budgetSales), fontWeight: 700 }}>
-                            {formatPercent(k.projectedSales, k.budgetSales)}
-                          </td>
-                          <td>{k.accumMonthTransactions}</td>
-                          <td>{k.budgetTransactions}</td>
-                          <td style={{ color: 'white', backgroundColor: getPOColor(k.accumMonthTransactions, k.budgetTransactions), fontWeight: 700 }}>
-                            {formatPercent(k.accumMonthTransactions, k.budgetTransactions)}
-                          </td>
-                          <td>{formatCurrency(k.budgetReceipt, 2)}</td>
-                          <td>{k.accumMonthTransactions}</td>
-                          <td>{formatCurrency(k.accumMonthSales / (k.accumMonthTransactions || 1), 2)}</td>
-                          <td style={{ color: 'white', backgroundColor: getPOColor(k.accumMonthSales / (k.accumMonthTransactions || 1), k.budgetReceipt), fontWeight: 700 }}>
-                            {formatPercent(k.accumMonthSales / (k.accumMonthTransactions || 1), k.budgetReceipt)}
-                          </td>
-                        </tr>
-                      ))}
-                      {group.stores.length > 1 && (
-                        <tr className="subtotal-row">
-                          <td className="store-name">{group.name}</td>
-                          <td>{formatCurrency(subYesterdaySales)}</td>
-                          <td>{formatCurrency(subAccumSales)}</td>
-                          <td>{formatCurrency(subProjectedSales)}</td>
-                          <td>{formatCurrency(subBudgetSales)}</td>
-                          <td>{renderDailyRequired(subAccumSales, subBudgetSales)}</td>
-                          <td style={{ color: 'white', backgroundColor: getPOColor(subProjectedSales, subBudgetSales), fontWeight: 900 }}>
-                            {formatPercent(subProjectedSales, subBudgetSales)}
-                          </td>
-                          <td>{subAccumTrans}</td>
-                          <td>{subBudgetTrans}</td>
-                          <td style={{ color: 'white', backgroundColor: getPOColor(subAccumTrans, subBudgetTrans), fontWeight: 900 }}>
-                            {formatPercent(subAccumTrans, subBudgetTrans)}
-                          </td>
-                          <td>{formatCurrency(subBudgetReceipt, 2)}</td>
-                          <td>{subAccumTrans}</td>
-                          <td>{formatCurrency(subAvgReceipt, 2)}</td>
-                          <td style={{ color: 'white', backgroundColor: getPOColor(subAvgReceipt, subBudgetReceipt), fontWeight: 900 }}>
-                            {formatPercent(subAvgReceipt, subBudgetReceipt)}
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="total-row">
-                  <td>TOTAL ÁREAS DE SERVIÇO - ANA</td>
-                  <td>{formatCurrency(totalYesterdaySales)}</td>
-                  <td>{formatCurrency(totalAccumSales)}</td>
-                  <td>{formatCurrency(totalProjectedSales)}</td>
-                  <td>{formatCurrency(totalBudgetSales)}</td>
-                  <td>{renderDailyRequired(totalAccumSales, totalBudgetSales)}</td>
-                  <td style={{ backgroundColor: getPOColor(totalProjectedSales, totalBudgetSales), color: 'white' }}>
-                    {formatPercent(totalProjectedSales, totalBudgetSales)}
-                  </td>
-                  <td>{totalAccumTransactions}</td>
-                  <td>{totalBudgetTransactions}</td>
-                  <td style={{ color: 'white', backgroundColor: getPOColor(totalAccumTransactions, totalBudgetTransactions), fontWeight: 900 }}>
-                    {formatPercent(totalAccumTransactions, totalBudgetTransactions)}
-                  </td>
-                  <td>{formatCurrency(totalBudgetReceipt, 2)}</td>
-                  <td>{totalAccumTransactions}</td>
-                  <td>{formatCurrency(totalAvgReceipt, 2)}</td>
-                  <td style={{ color: 'white', backgroundColor: getPOColor(totalAvgReceipt, totalBudgetReceipt), fontWeight: 900 }}>
-                    {formatPercent(totalAvgReceipt, totalBudgetReceipt)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+          <div 
+            className="table-wrapper clickable" 
+            onClick={() => setIsMaximized(true)}
+            style={{ position: 'relative', cursor: 'zoom-in', marginBottom: '2rem', borderRadius: '1rem', border: '1px solid #e2e8f0', overflowX: 'auto' }}
+          >
+            <div style={{
+              position: 'absolute', top: '10px', right: '10px', backgroundColor: 'rgba(255,255,255,0.8)',
+              padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, zIndex: 5,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)', color: '#3b82f6', border: '1px solid #e2e8f0'
+            }}>
+              🔍 Clique para Ampliar
+            </div>
+            <TableContent />
           </div>
 
           <PerformanceChart data={kpis} />
