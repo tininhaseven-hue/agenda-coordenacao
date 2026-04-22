@@ -529,6 +529,7 @@ export default function Home() {
           <header className="mb-6 no-print">
             <h1 className="page-title">
               Agenda de Coordenação <span style={{ fontSize: '0.6em', opacity: 0.8, marginLeft: '0.5rem', fontWeight: 600 }}>Ana Neves</span>
+              <span style={{ fontSize: '0.4em', backgroundColor: 'var(--accent-dark)', color: 'white', padding: '2px 6px', borderRadius: '4px', marginLeft: '10px', verticalAlign: 'middle' }}>v2.5</span>
             </h1>
             <p className="page-subtitle">Gestão Diária de Rotinas</p>
           </header>
