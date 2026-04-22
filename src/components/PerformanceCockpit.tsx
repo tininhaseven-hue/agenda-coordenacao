@@ -797,15 +797,15 @@ export function PerformanceCockpit() {
         }
 
         .header-store { background: #f97316; }
-        .header-vendas { background: #2563eb; }
-        .header-trans { background: #0891b2; }
-        .header-receita { background: #059669; }
+        .header-vendas { background: #3b82f6; }
+        .header-trans { background: #06b6d4; }
+        .header-receita { background: #10b981; }
 
         .sub-headers th {
-          background: #f1f5f9;
-          color: #334155;
-          font-weight: 800;
-          border-bottom: 2px solid #cbd5e1;
+          background: #f8fafc;
+          color: #475569;
+          font-weight: 700;
+          border-bottom: 1px solid #e2e8f0;
         }
 
         .kpi-table tr:nth-child(even) { background-color: #f8fafc; }
@@ -813,10 +813,10 @@ export function PerformanceCockpit() {
 
         .store-name {
           text-align: left !important;
-          font-weight: 800;
+          font-weight: 700;
           color: #1e293b;
-          background: #fff7ed !important;
-          border-left: 4px solid #f97316 !important;
+          background: transparent !important;
+          border-left: none !important;
           padding-left: 0.75rem !important;
         }
 
