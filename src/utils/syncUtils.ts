@@ -1,5 +1,5 @@
 /**
- * Utilitário de Sincronização para Cloud (Turso)
+ * Utilitário de Sincronização para Cloud (Turso) - v2.1
  */
 
 const ACCESS_PIN = process.env.NEXT_PUBLIC_ACCESS_PIN || "3955";
