@@ -522,29 +522,6 @@ export default function Home() {
           ))}
         </div>
         
-        <button 
-          onClick={async () => {
-             const btn = document.getElementById('sync-btn');
-             if (btn) btn.style.transform = 'scale(0.95)';
-             try {
-               const { fullTwoWaySync } = await import('@/utils/syncUtils');
-               await fullTwoWaySync();
-               alert('✅ Dados salvos e sincronizados com sucesso!');
-             } catch (e) {
-               alert('❌ Erro na sincronização. Verifique a internet.');
-             } finally {
-               if (btn) btn.style.transform = 'scale(1)';
-             }
-          }}
-          id="sync-btn"
-          style={{
-            padding: '0.75rem 1.25rem', borderRadius: '0.75rem', border: 'none', background: 'var(--accent-dark)',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem', fontWeight: 800,
-            color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', transition: 'all 0.2s'
-          }}
-        >
-          🔄 Sincronizar Agora
-        </button>
       </div>
 
       {mainTab === 'VISÃO ROTINAS' && (

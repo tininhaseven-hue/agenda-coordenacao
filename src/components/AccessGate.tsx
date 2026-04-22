@@ -95,6 +95,63 @@ export function AccessGate({ children }: AccessGateProps) {
           />
           
           <button 
+            onClick={async () => {
+               try {
+                 await fullTwoWaySync(handleSyncStatus);
+                 alert('✅ Sincronizado!');
+               } catch (e) {
+                 alert('❌ Falha na sincronização.');
+               }
+            }}
+            style={{
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              color: '#22c55e',
+              border: '1px solid rgba(34, 197, 94, 0.2)',
+              borderRadius: '4px',
+              padding: '4px 8px',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            🔄 <span className="hide-mobile">Sync</span>
+          </button>
+
+          <button 
+            onClick={() => {
+              const data: Record<string, string | null> = {};
+              Object.keys(localStorage).forEach(key => {
+                if (!key.startsWith('__next')) data[key] = localStorage.getItem(key);
+              });
+              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `backup_agenda_${new Date().toISOString().split('T')[0]}.json`;
+              a.click();
+            }}
+            style={{
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              color: '#3b82f6',
+              border: '1px solid rgba(59, 130, 246, 0.2)',
+              borderRadius: '4px',
+              padding: '4px 8px',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title="Backup Local"
+          >
+            💾 <span className="hide-mobile">Backup</span>
+          </button>
+          
+          <button 
             onClick={handleLogout}
             style={{
               backgroundColor: 'rgba(15, 23, 42, 0.6)',
