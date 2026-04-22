@@ -549,7 +549,7 @@ export default function Home() {
 
           <button 
             onClick={() => {
-              const data = {};
+              const data: Record<string, string | null> = {};
               Object.keys(localStorage).forEach(key => {
                 if (!key.startsWith('__next')) data[key] = localStorage.getItem(key);
               });
