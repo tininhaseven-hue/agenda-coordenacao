@@ -8,17 +8,17 @@ export function useProjects(activeStore: string) {
   const [executions, setExecutions] = useState<Record<string, ProjectExecution[]>>({});
   const [today, setToday] = useState<Date | null>(null);
 
-  // Carregar dados iniciais
+  // Sincronização Inteligente com a Nuvem
   useEffect(() => {
-    const syncWithCloud = async () => {
-      const cloudData = await pullFromCloud();
-      if (cloudData) {
-        Object.entries(cloudData).forEach(([key, value]) => {
-          localStorage.setItem(key, value);
-        });
+    const performSync = async () => {
+      try {
+        const { fullTwoWaySync } = await import('@/utils/syncUtils');
+        await fullTwoWaySync();
+      } catch (e) {
+        console.error("Erro na sincronização inicial:", e);
       }
     };
-    syncWithCloud();
+    performSync();
   }, []);
 
   useEffect(() => {

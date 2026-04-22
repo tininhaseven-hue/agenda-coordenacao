@@ -47,9 +47,11 @@ export function ProjectPlannerView({ project, onUpdateEntries, onUpdateNotes }: 
     resetForm();
   };
 
-  const removeEntry = (month: number, entryId: string) => {
-    const currentEntries = project.plannerData?.[month] || [];
-    onUpdateEntries(project.id, month, currentEntries.filter(e => e.id !== entryId));
+  const removeEntry = (month: number, entryId: string, entryName: string) => {
+    if (window.confirm(`Tem a certeza que deseja eliminar o agendamento de "${entryName}"?`)) {
+      const currentEntries = project.plannerData?.[month] || [];
+      onUpdateEntries(project.id, month, currentEntries.filter(e => e.id !== entryId));
+    }
   };
 
   const resetForm = () => {
@@ -80,7 +82,7 @@ export function ProjectPlannerView({ project, onUpdateEntries, onUpdateNotes }: 
                       <span className="store">({ent.store})</span>
                       <span className="date">{ent.date}</span>
                     </div>
-                    <button className="delete-entry no-print" onClick={() => removeEntry(idx, ent.id)}>×</button>
+                    <button className="delete-entry no-print" onClick={() => removeEntry(idx, ent.id, ent.name)}>×</button>
                   </div>
                 ))}
 

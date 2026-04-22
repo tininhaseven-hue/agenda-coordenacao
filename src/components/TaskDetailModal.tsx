@@ -251,10 +251,12 @@ export function TaskDetailModal({
     saveChecklist(newList);
   };
 
-  const handleDeleteSubTask = (id: string) => {
-    const newList = localChecklist.filter(item => item.id !== id);
-    setLocalChecklist(newList);
-    saveChecklist(newList);
+  const handleDeleteSubTask = (id: string, text: string) => {
+    if (window.confirm(`Tem a certeza que deseja eliminar o item "${text}"?`)) {
+      const newList = localChecklist.filter(item => item.id !== id);
+      setLocalChecklist(newList);
+      saveChecklist(newList);
+    }
   };
 
   const getStoreCompletion = (s: string) => {
@@ -423,7 +425,7 @@ export function TaskDetailModal({
                   <span className={`subtask-text ${item.isDone ? 'done' : ''}`} onClick={() => handleToggleSubTask(item.id)}>
                     {item.text}
                   </span>
-                  <button className="del-subtask" onClick={() => handleDeleteSubTask(item.id)}>&times;</button>
+                  <button className="del-subtask" onClick={() => handleDeleteSubTask(item.id, item.text)}>&times;</button>
                 </div>
               ))}
               <div className="subtask-add">

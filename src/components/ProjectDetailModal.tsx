@@ -60,87 +60,88 @@ export function ProjectDetailModal({
   const [printScope, setPrintScope] = useState<'current' | 'all'>('current');
 
   const handlePrint = () => {
-    if (project.type !== 'PLANNER') {
+    let html = '';
+    const dateStr = new Date().toLocaleDateString('pt-PT');
+    const headerLogo = `<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; border-bottom:2px solid #0f172a; padding-bottom:0.75rem;">
+      <div>
+        <h1 style="font-size:1.4rem; font-weight:900; margin:0;">📋 ${project.title}</h1>
+        <div style="color:#64748b; font-size:0.85rem;">Relatório de Coordenação Executiva</div>
+      </div>
+      <div style="text-align:right; font-size:0.8rem; color:#64748b;">
+        <span style="color:#10b981; font-weight:900; font-size:1.1rem; font-style:italic;">ANA</span><br/>
+        <strong>${dateStr}</strong><br/>
+        Unidade: ${selectedStore}
+      </div>
+    </div>`;
+
+    const commonStyles = `<style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Inter', sans-serif; color: #1e293b; padding: 1.5cm; font-size: 11px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+      th { background: #f1f5f9; color: #475569; text-transform: uppercase; font-size: 0.65rem; font-weight: 800; padding: 0.6rem; border: 1px solid #e2e8f0; text-align: left; }
+      td { padding: 0.6rem; border: 1px solid #e2e8f0; vertical-align: top; }
+      .footer-total { margin-top: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: flex-end; }
+      .total-box { text-align: right; }
+      .total-label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+      .total-value { font-size: 1.2rem; font-weight: 900; color: #0f172a; }
+      @page { size: A4; margin: 0; }
+      @media print { body { padding: 1.5cm; } }
+    </style>`;
+
+    if (project.type === 'PLANNER') {
+      const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const monthsHtml = MONTHS.map((name, idx) => {
+        const entries = project.plannerData?.[idx] || [];
+        return `<div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; min-height:100px; break-inside:avoid; margin-bottom:1rem;">
+          <div style="background:#f8fafc; padding:0.4rem; text-align:center; font-weight:800; font-size:0.75rem; border-bottom:1px solid #e2e8f0;">${name}</div>
+          <div style="padding:0.5rem;">
+            ${entries.map(e => `<div style="font-size:0.75rem; margin-bottom:0.2rem;">• <strong>${e.name}</strong> (${e.store}) - ${e.date}</div>`).join('') || '<em style="color:#94a3b8;">Vazio</em>'}
+          </div>
+        </div>`;
+      }).join('');
+      
+      html = `<html><head>${commonStyles}</head><body>${headerLogo}
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;">${monthsHtml}</div>
+        <div style="margin-top:2rem; border-top:2px solid #0f172a; padding-top:1rem;">
+          <h3 style="font-size:0.9rem; font-weight:800; margin-bottom:0.5rem;">Notas Estratégicas</h3>
+          <div style="white-space:pre-wrap; font-size:0.85rem; color:#475569;">${project.projectNotes || 'Sem notas registadas.'}</div>
+        </div></body></html>`;
+    } 
+    else if (project.type === 'INCIDENTS') {
+      const incs = (project.incidentData || {})[`${selectedStore}||${new Date().getFullYear()}`] || [];
+      const total = incs.reduce((acc, i) => acc + (i.costExVat || 0), 0);
+      html = `<html><head>${commonStyles}</head><body>${headerLogo}
+        <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">Mapa de Incidentes e Reparações</h2>
+        <table><thead><tr><th>Data</th><th>Descrição</th><th>Valor (S/ IVA)</th><th>Status</th></tr></thead>
+        <tbody>${incs.map(i => `<tr><td>${i.requestDate}</td><td>${i.description}</td><td>${i.costExVat.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €</td><td>${i.approvalDate ? '✅ Aprovado' : '⏳ Pendente'}</td></tr>`).join('')}</tbody></table>
+        <div class="footer-total"><div class="total-box"><div class="total-label">Investimento Total</div><div class="total-value">${total.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</div></div></div>
+        </body></html>`;
+    }
+    else if (project.type === 'MAINTENANCE') {
+      const tasks = (project.maintenanceData || {})[selectedStore] || [];
+      const total = tasks.reduce((acc, t) => acc + t.amountPaid, 0);
+      html = `<html><head>${commonStyles}</head><body>${headerLogo}
+        <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">Histórico de Manutenções Preventivas/Curativas</h2>
+        <table><thead><tr><th>Problema</th><th>Data Entrada</th><th>Medida Tomada</th><th>Data Resol.</th><th>Valor Pago</th></tr></thead>
+        <tbody>${tasks.map(t => `<tr><td>${t.problem}</td><td>${t.entryDate}</td><td>${t.measure}</td><td>${t.resolutionDate}</td><td>${t.amountPaid.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €</td></tr>`).join('')}</tbody></table>
+        <div class="footer-total"><div class="total-box"><div class="total-label">Total Liquidado</div><div class="total-value">${total.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</div></div></div>
+        </body></html>`;
+    }
+    else if (project.type === 'SHOPPING') {
+      const items = (project.shoppingData || {})[selectedStore] || [];
+      const total = items.reduce((acc, i) => acc + (i.quantity * i.pricePerBox), 0);
+      html = `<html><head>${commonStyles}</head><body>${headerLogo}
+        <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">Lista de Encomendas e Suprimentos</h2>
+        <table><thead><tr><th>Item</th><th>Qtd</th><th>Preço/Un</th><th>Subtotal</th><th>Status</th></tr></thead>
+        <tbody>${items.map(i => `<tr><td>${i.description}</td><td>${i.quantity}</td><td>${i.pricePerBox.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €</td><td>${(i.quantity * i.pricePerBox).toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €</td><td>${i.isPurchased ? '📦 Recebido' : '🛒 Em falta'}</td></tr>`).join('')}</tbody></table>
+        <div class="footer-total"><div class="total-box"><div class="total-label">Valor Estimado</div><div class="total-value">${total.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</div></div></div>
+        </body></html>`;
+    }
+    else {
       window.print();
       return;
     }
-
-    // For PLANNER projects, build a dedicated print window to avoid modal scroll clipping
-    const MONTHS = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
-    const MONTH_COLORS = [
-      '#92400e', '#166534', '#1e40af', '#9d174d', '#9a3412', '#14532d',
-      '#991b1b', '#7f1d1d', '#1e3a5f', '#5b21b6', '#0c4a6e', '#1f2d3d'
-    ];
-
-    const monthsHtml = MONTHS.map((monthName, idx) => {
-      const entries: PlannerEntry[] = project.plannerData?.[idx] || [];
-      const entriesHtml = entries.length > 0
-        ? entries.map(e => `
-            <div style="padding:0.4rem 0.6rem; background:#f8fafc; border-radius:4px; border-left:3px solid #cbd5e1; font-size:0.82rem; margin-bottom:0.35rem;">
-              <strong>${e.name}</strong>
-              <span style="color:#64748b;"> (${e.store})</span>
-              <span style="color:#0284c7; font-weight:600;"> ${e.date}</span>
-            </div>`).join('')
-        : `<div style="color:#94a3b8; font-size:0.78rem; font-style:italic;">Sem agendamentos</div>`;
-
-      return `
-        <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; min-height:120px; display:flex; flex-direction:column; break-inside:avoid;">
-          <div style="padding:0.5rem; text-align:center; font-weight:800; font-size:0.85rem; text-transform:uppercase; border-bottom:1px solid #e2e8f0; color:${MONTH_COLORS[idx]};">
-            ${monthName}
-          </div>
-          <div style="padding:0.5rem; flex:1;">
-            ${entriesHtml}
-          </div>
-        </div>`;
-    }).join('');
-
-    const notesText = project.projectNotes
-      ? project.projectNotes.replace(/\n/g, '<br/>')
-      : '<em style="color:#94a3b8;">Sem notas registadas.</em>';
-
-    const html = `<!DOCTYPE html>
-<html lang="pt">
-<head>
-  <meta charset="UTF-8"/>
-  <title>${project.title} – Relatório Anual</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', Arial, sans-serif; color: #1e293b; padding: 1.5cm; font-size: 14px; }
-    h1 { font-size: 1.4rem; font-weight: 900; }
-    .subtitle { color: #64748b; font-size: 0.85rem; margin-bottom: 1.5rem; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 2rem; }
-    .notes-box { border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-top: 0.5rem; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6; min-height: 80px; }
-    .section-title { font-size: 1rem; font-weight: 800; margin-bottom: 0.75rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.3rem; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 2px solid #0f172a; padding-bottom: 0.75rem; }
-    .date { font-size: 0.8rem; color: #64748b; text-align: right; }
-    @page { size: A4; margin: 1.5cm; }
-    @media print { body { padding: 0; } }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div>
-      <h1>📋 ${project.title}</h1>
-      <div class="subtitle">Relatório Anual de Consultas Médicas</div>
-    </div>
-    <div class="date">
-      <strong>${new Date().toLocaleDateString('pt-PT')}</strong><br/>
-      Agenda de Coordenação Ibersol
-    </div>
-  </div>
-
-  <div class="section-title">Agendamentos por Mês</div>
-  <div class="grid">
-    ${monthsHtml}
-  </div>
-
-  <div class="section-title">Notas e Agendamentos Futuros</div>
-  <div class="notes-box">${notesText}</div>
-</body>
-</html>`;
 
     const printWin = window.open('', '_blank', 'width=900,height=700');
     if (!printWin) return;
@@ -566,6 +567,12 @@ export function ProjectDetailModal({
                         onAddItem={() => {}}
                         onUpdateItem={() => {}}
                         onDeleteItem={() => {}}
+                      />
+                    ) : project.type === 'PLANNER' ? (
+                      <ProjectPlannerView 
+                        project={project}
+                        onUpdateEntries={() => {}}
+                        onUpdateNotes={() => {}}
                       />
                     ) : null}
                  </div>

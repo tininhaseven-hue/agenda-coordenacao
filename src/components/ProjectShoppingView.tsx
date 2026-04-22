@@ -178,7 +178,7 @@ export function ProjectShoppingView({
                                {item.isHidden ? '👁️' : '🙈'}
                             </button>
                             <button 
-                               onClick={() => { if(confirm('Eliminar?')) onDeleteItem(project.id, item.id); }} 
+                               onClick={() => { if(window.confirm(`Tem a certeza que deseja eliminar o item "${item.description}" da lista?`)) onDeleteItem(project.id, item.id); }} 
                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', opacity: 0.5 }}
                             >
                                ✕

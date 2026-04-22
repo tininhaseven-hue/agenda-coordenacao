@@ -230,7 +230,7 @@ export function ProjectIncidentsView({ project, onAddIncident, onUpdateIncident,
                              {inc.isHidden ? '👁️' : '🙈'}
                           </button>
                           <button 
-                             onClick={() => onDeleteIncident(project.id, inc.id)} 
+                             onClick={() => { if (window.confirm(`Tem a certeza que deseja eliminar o incidente "${inc.description}"?`)) onDeleteIncident(project.id, inc.id); }} 
                              title="Remover definitivamente"
                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '1.1rem', opacity: 0.5 }}
                           >

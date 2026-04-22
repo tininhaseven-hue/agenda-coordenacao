@@ -77,16 +77,24 @@ export async function fullTwoWaySync(onStatus?: (status: 'idle' | 'success' | 'e
         const localValue = localStorage.getItem(key);
         const isEmptyLocal = !localValue || localValue === '{}';
         
-        // Verifica se a nuvem é mais recente que o último registo de sincronização que fizemos localmente
         const localTsStr = localStorage.getItem('sync_ts_' + key);
         const localTs = localTsStr ? parseInt(localTsStr, 10) : 0;
-        
-        const nuvemMaisRecente = cloudTs > localTs;
 
-        if ((isEmptyLocal && cloudValue !== '{}') || nuvemMaisRecente) {
+        // LÓGICA DE PROTEÇÃO: 
+        // Só aceitamos dados da nuvem se:
+        // 1. O local estiver vazio (primeira vez)
+        // 2. TIVERMOS um registo de sincronização anterior (localTs > 0) E a nuvem for realmente mais recente
+        const nuvemMaisRecente = localTs > 0 && cloudTs > localTs;
+
+        if ((isEmptyLocal && cloudValue !== '{}' && cloudValue !== '[]') || nuvemMaisRecente) {
           localStorage.setItem(key, cloudValue);
           localStorage.setItem('sync_ts_' + key, cloudTs.toString());
           dataUpdated = true;
+          console.log(`Atualizado: ${key} (vinda da nuvem)`);
+        } else if (!isEmptyLocal && cloudValue !== localValue) {
+          // Se o local tem dados e é diferente da nuvem, mas não temos certeza de quem é mais novo,
+          // forçamos o PUSH do local para a nuvem para garantir que não perdemos nada.
+          console.log(`Conflito detetado em ${key}: Mantendo local e agendando envio.`);
         }
       });
     }

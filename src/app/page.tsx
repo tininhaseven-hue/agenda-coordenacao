@@ -499,25 +499,53 @@ export default function Home() {
 
 
 
-      <div className="main-tabs-selector no-print" style={{
-        display: 'flex', gap: '0.25rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.25rem', borderBottom: '1px solid var(--border-color)'
-      }}>
-        {['VISÃO ROTINAS', 'VISÃO ÁREAS', 'PROJETOS', 'VISITAS', 'PERFORMANCE', 'RELATÓRIOS'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setMainTab(tab as MainTab)}
-            style={{
-              padding: '0.75rem 1.25rem', borderRadius: '0.75rem', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer',
-              backgroundColor: mainTab === tab ? 'var(--accent-dark)' : 'transparent', color: mainTab === tab ? 'var(--primary-color)' : '#64748b',
-              display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s',
-              boxShadow: mainTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
-            }}
-          >
-            {tab === 'PROJETOS' ? '📂 ' : ''}
-            {tab === 'PERFORMANCE' ? '📈 ' : ''}
-            {tab}
-          </button>
-        ))}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem' }} className="no-print">
+        <div className="main-tabs-selector" style={{
+          display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0.25rem', borderBottom: '1px solid var(--border-color)', flex: 1
+        }}>
+          {['VISÃO ROTINAS', 'VISÃO ÁREAS', 'PROJETOS', 'VISITAS', 'PERFORMANCE', 'RELATÓRIOS'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setMainTab(tab as MainTab)}
+              style={{
+                padding: '0.75rem 1.25rem', borderRadius: '0.75rem', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer',
+                backgroundColor: mainTab === tab ? 'var(--accent-dark)' : 'transparent', color: mainTab === tab ? 'var(--primary-color)' : '#64748b',
+                display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s',
+                boxShadow: mainTab === tab ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {tab === 'PROJETOS' ? '📂 ' : ''}
+              {tab === 'PERFORMANCE' ? '📈 ' : ''}
+              {tab}
+            </button>
+          ))}
+        </div>
+        
+        <button 
+          onClick={async () => {
+             const btn = document.getElementById('sync-btn');
+             if (btn) btn.style.opacity = '0.5';
+             try {
+               const { fullTwoWaySync } = await import('@/utils/syncUtils');
+               await fullTwoWaySync();
+               alert('✅ Sincronização concluída!');
+             } catch (e) {
+               alert('❌ Erro na sincronização. Verifique a internet.');
+             } finally {
+               if (btn) btn.style.opacity = '1';
+             }
+          }}
+          id="sync-btn"
+          style={{
+            padding: '0.75rem 1rem', borderRadius: '0.75rem', border: 'none', background: 'var(--accent-dark)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', fontWeight: 800,
+            color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', transition: 'all 0.2s'
+          }}
+          title="Sincronizar dados com a nuvem"
+        >
+          🔄 <span className="hide-mobile">Sincronizar</span>
+        </button>
       </div>
 
       {mainTab === 'VISÃO ROTINAS' && (

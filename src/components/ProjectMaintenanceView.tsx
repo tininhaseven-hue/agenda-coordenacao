@@ -202,7 +202,7 @@ export function ProjectMaintenanceView({ project, onAddTask, onUpdateTask, onDel
                              {task.isHidden ? '👁️' : '🙈'}
                           </button>
                           <button 
-                             onClick={() => { if(confirm('Eliminar esta linha?')) onDeleteTask(project.id, task.id); }} 
+                             onClick={() => { if(window.confirm(`Tem a certeza que deseja eliminar o registo de "${task.problem}"?`)) onDeleteTask(project.id, task.id); }} 
                              title="Remover definitivamente"
                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', opacity: 0.5 }}
                           >

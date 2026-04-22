@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Area, ALL_STORES, Project, ProjectType } from '@/types';
 import { useProjects } from '@/hooks/useProjects';
 import { ProjectCard } from './ProjectCard';
+import { RegionalDashboard } from './RegionalDashboard';
 import { IBERSOL_INITIAL_TRAINING } from '@/constants/templates';
 
 interface ProjectManagerProps {
@@ -68,6 +69,8 @@ export function ProjectManager({
 
   return (
     <div className="project-manager animate-fade">
+      <RegionalDashboard projects={projects} isCellDone={isCellDone} />
+      
       <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', marginBottom: '1rem' }}>Criar Novo Projeto Estruturado</h2>
         <form onSubmit={handleCreateProject} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>

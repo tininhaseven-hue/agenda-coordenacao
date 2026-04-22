@@ -49,7 +49,7 @@ export function ProjectWorkspaceView({
               </div>
               <button 
                 onClick={() => {
-                  if (confirm('Eliminar este bloco?')) onDeleteBlock(block.id);
+                  if (window.confirm(`Tem a certeza que deseja eliminar o bloco "${block.title}"?`)) onDeleteBlock(block.id);
                 }}
                 className="delete-block-btn"
               >
@@ -96,8 +96,10 @@ export function ProjectWorkspaceView({
                       />
                       <button 
                         onClick={() => {
-                          const newList = (block.checklist || []).filter(t => t.id !== task.id);
-                          onUpdateBlock(block.id, { checklist: newList });
+                          if (window.confirm(`Tem a certeza que deseja eliminar a tarefa "${task.text}"?`)) {
+                            const newList = (block.checklist || []).filter(t => t.id !== task.id);
+                            onUpdateBlock(block.id, { checklist: newList });
+                          }
                         }}
                         className="remove-task-btn"
                       >
@@ -135,9 +137,11 @@ export function ProjectWorkspaceView({
                             />
                             <button 
                               onClick={() => {
-                                const newHeaders = (block.table?.headers || []).filter((_, idx) => idx !== i);
-                                const newRows = (block.table?.rows || []).map(r => r.filter((_, idx) => idx !== i));
-                                onUpdateBlock(block.id, { table: { headers: newHeaders, rows: newRows } });
+                                if (window.confirm(`Tem a certeza que deseja eliminar a coluna "${h}"?`)) {
+                                  const newHeaders = (block.table?.headers || []).filter((_, idx) => idx !== i);
+                                  const newRows = (block.table?.rows || []).map(r => r.filter((_, idx) => idx !== i));
+                                  onUpdateBlock(block.id, { table: { headers: newHeaders, rows: newRows } });
+                                }
                               }}
                               className="col-delete-btn"
                             >
@@ -179,8 +183,10 @@ export function ProjectWorkspaceView({
                           <td>
                             <button 
                               onClick={() => {
-                                const newRows = (block.table?.rows || []).filter((_, idx) => idx !== ri);
-                                onUpdateBlock(block.id, { table: { ...block.table!, rows: newRows } });
+                                if (window.confirm('Tem a certeza que deseja eliminar esta linha?')) {
+                                  const newRows = (block.table?.rows || []).filter((_, idx) => idx !== ri);
+                                  onUpdateBlock(block.id, { table: { ...block.table!, rows: newRows } });
+                                }
                               }}
                               className="row-delete-btn"
                             >
@@ -222,8 +228,10 @@ export function ProjectWorkspaceView({
                             {item.type === 'IMAGE' && <a href={item.url} target="_blank" rel="noreferrer">Ver</a>}
                             <button 
                               onClick={() => {
-                                const newList = (block.media || []).filter(i => i.id !== item.id);
-                                onUpdateBlock(block.id, { media: newList });
+                                if (window.confirm(`Tem a certeza que deseja remover o ficheiro "${item.name}"?`)) {
+                                  const newList = (block.media || []).filter(i => i.id !== item.id);
+                                  onUpdateBlock(block.id, { media: newList });
+                                }
                               }}
                               className="delete-item-btn"
                             >
