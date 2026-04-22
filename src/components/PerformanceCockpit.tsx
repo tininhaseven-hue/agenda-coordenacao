@@ -413,8 +413,8 @@ export function PerformanceCockpit() {
           return (
             <React.Fragment key={group.name}>
               {groupKpis.map((k, idx) => (
-                <tr key={k.store} style={{ backgroundColor: idx % 2 === 0 ? '#f0f9ff' : '#ffffff' }}>
-                  <td className="store-name" style={{ backgroundColor: '#fff7ed', borderLeft: '5px solid #f97316', fontWeight: 800, textAlign: 'left', paddingLeft: '12px', color: '#7c2d12' }}>{k.store}</td>
+                <tr key={k.store} style={{ backgroundColor: idx % 2 === 0 ? '#f8fafc' : '#ffffff' }}>
+                  <td className="store-name" style={{ backgroundColor: '#fff4e6', borderLeft: '5px solid #fb923c', fontWeight: 800, textAlign: 'left', paddingLeft: '12px', color: '#9a3412' }}>{k.store}</td>
                   <td style={{ fontWeight: 600 }}>{formatCurrency(k.yesterdaySales)}</td>
                   <td>{formatCurrency(k.accumMonthSales)}</td>
                   <td>{formatCurrency(k.projectedSales)}</td>
@@ -437,8 +437,8 @@ export function PerformanceCockpit() {
                 </tr>
               ))}
               {group.stores.length > 1 && (
-                <tr className="subtotal-row" style={{ backgroundColor: '#cbd5e1', fontWeight: 900, color: '#0f172a' }}>
-                  <td className="store-name" style={{ backgroundColor: '#ffedd5', borderLeft: '5px solid #ea580c', textAlign: 'left', paddingLeft: '12px' }}>{group.name}</td>
+                <tr className="subtotal-row" style={{ backgroundColor: '#e2e8f0', fontWeight: 900, color: '#1e293b' }}>
+                  <td className="store-name" style={{ backgroundColor: '#fff4e6', borderLeft: '5px solid #f97316', textAlign: 'left', paddingLeft: '12px', color: '#9a3412' }}>{group.name}</td>
                   <td>{formatCurrency(subYesterdaySales)}</td>
                   <td>{formatCurrency(subAccumSales)}</td>
                   <td>{formatCurrency(subProjectedSales)}</td>
@@ -465,8 +465,8 @@ export function PerformanceCockpit() {
         })}
       </tbody>
       <tfoot>
-        <tr className="total-row" style={{ backgroundColor: '#020617', color: '#ffffff', fontWeight: 900 }}>
-          <td style={{ textAlign: 'left', paddingLeft: '12px', borderLeft: '5px solid #3b82f6', backgroundColor: '#020617', color: '#ffffff' }}>TOTAL ÁREAS DE SERVIÇO - ANA</td>
+        <tr className="total-row" style={{ backgroundColor: '#0f172a', color: '#ffffff', fontWeight: 900 }}>
+          <td style={{ textAlign: 'left', paddingLeft: '12px', borderLeft: '5px solid #3b82f6', backgroundColor: '#0f172a', color: '#ffffff' }}>TOTAL ÁREAS DE SERVIÇO - ANA</td>
           <td>{formatCurrency(totalYesterdaySales)}</td>
           <td>{formatCurrency(totalAccumSales)}</td>
           <td>{formatCurrency(totalProjectedSales)}</td>
