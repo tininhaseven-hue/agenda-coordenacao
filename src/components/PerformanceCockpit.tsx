@@ -412,9 +412,9 @@ export function PerformanceCockpit() {
 
           return (
             <React.Fragment key={group.name}>
-              {groupKpis.map(k => (
-                <tr key={k.store}>
-                  <td className="store-name">{k.store}</td>
+              {groupKpis.map((k, idx) => (
+                <tr key={k.store} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                  <td className="store-name" style={{ backgroundColor: '#fff7ed', borderLeft: '4px solid #f97316', fontWeight: 800, textAlign: 'left', paddingLeft: '10px' }}>{k.store}</td>
                   <td>{formatCurrency(k.yesterdaySales)}</td>
                   <td>{formatCurrency(k.accumMonthSales)}</td>
                   <td>{formatCurrency(k.projectedSales)}</td>
@@ -437,8 +437,8 @@ export function PerformanceCockpit() {
                 </tr>
               ))}
               {group.stores.length > 1 && (
-                <tr className="subtotal-row">
-                  <td className="store-name">{group.name}</td>
+                <tr className="subtotal-row" style={{ backgroundColor: '#e2e8f0', fontWeight: 800 }}>
+                  <td className="store-name" style={{ backgroundColor: '#fff7ed', borderLeft: '4px solid #f97316', textAlign: 'left', paddingLeft: '10px' }}>{group.name}</td>
                   <td>{formatCurrency(subYesterdaySales)}</td>
                   <td>{formatCurrency(subAccumSales)}</td>
                   <td>{formatCurrency(subProjectedSales)}</td>
