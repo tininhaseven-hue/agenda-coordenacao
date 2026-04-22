@@ -16,6 +16,7 @@ export function PerformanceCockpit() {
   const [tempSales, setTempSales] = useState<Record<string, { sales: string, trans: string }>>({});
   const [monthBuffer, setMonthBuffer] = useState<Record<string, Record<string, { sales: string, trans: string }>>>({});
 
+  const [isMaximized, setIsMaximized] = useState(false);
   const kpis = getPerformanceKPIs();
   const dailyTotals = getDailyTotals();
 
