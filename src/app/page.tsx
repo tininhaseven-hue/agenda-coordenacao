@@ -522,30 +522,53 @@ export default function Home() {
           ))}
         </div>
         
-        <button 
-          onClick={async () => {
-             const btn = document.getElementById('sync-btn');
-             if (btn) btn.style.opacity = '0.5';
-             try {
-               const { fullTwoWaySync } = await import('@/utils/syncUtils');
-               await fullTwoWaySync();
-               alert('✅ Sincronização concluída!');
-             } catch (e) {
-               alert('❌ Erro na sincronização. Verifique a internet.');
-             } finally {
-               if (btn) btn.style.opacity = '1';
-             }
-          }}
-          id="sync-btn"
-          style={{
-            padding: '0.75rem 1rem', borderRadius: '0.75rem', border: 'none', background: 'var(--accent-dark)',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', fontWeight: 800,
-            color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', transition: 'all 0.2s'
-          }}
-          title="Sincronizar dados com a nuvem"
-        >
-          🔄 <span className="hide-mobile">Sincronizar</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button 
+            onClick={async () => {
+               const btn = document.getElementById('sync-btn');
+               if (btn) btn.style.transform = 'scale(0.95)';
+               try {
+                 const { fullTwoWaySync } = await import('@/utils/syncUtils');
+                 await fullTwoWaySync();
+                 alert('✅ Dados salvos e sincronizados com sucesso!');
+               } catch (e) {
+                 alert('❌ Erro na sincronização. Verifique a internet.');
+               } finally {
+                 if (btn) btn.style.transform = 'scale(1)';
+               }
+            }}
+            id="sync-btn"
+            style={{
+              padding: '0.75rem 1.25rem', borderRadius: '0.75rem', border: 'none', background: 'var(--accent-dark)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem', fontWeight: 800,
+              color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', transition: 'all 0.2s'
+            }}
+          >
+            🔄 Sincronizar Agora
+          </button>
+
+          <button 
+            onClick={() => {
+              const data = {};
+              Object.keys(localStorage).forEach(key => {
+                if (!key.startsWith('__next')) data[key] = localStorage.getItem(key);
+              });
+              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `backup_agenda_${new Date().toISOString().split('T')[0]}.json`;
+              a.click();
+            }}
+            style={{
+              padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', background: 'white',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}
+            title="Descarregar Cópia de Segurança Local"
+          >
+            💾
+          </button>
+        </div>
       </div>
 
       {mainTab === 'VISÃO ROTINAS' && (
