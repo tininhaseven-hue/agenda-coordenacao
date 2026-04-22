@@ -359,8 +359,164 @@ export function PerformanceCockpit() {
     width: '100%', padding: '0.4rem', border: 'none', background: 'transparent', textAlign: 'center', fontSize: '0.8rem', outline: 'none'
   };
 
+  const TableContent = () => (
+    <table className="kpi-table" style={{ fontSize: isMaximized ? '0.85rem' : '0.64rem' }}>
+      <colgroup>
+        <col style={{ width: isMaximized ? '180px' : '130px' }} />
+        {Array.from({ length: 14 }).map((_, i) => (
+          <col key={i} style={{ width: `${(100 / 14) * 10 / 10}%` }} />
+        ))}
+      </colgroup>
+      <thead>
+        <tr className="main-headers">
+          <th rowSpan={2} className="header-store">ÁREAS DE SERVIÇO - ANA</th>
+          <th colSpan={6} className="header-vendas">Vendas</th>
+          <th colSpan={3} className="header-trans">Transações</th>
+          <th colSpan={4} className="header-receita">Receita Média</th>
+        </tr>
+        <tr className="sub-headers">
+          <th>Dia ant.</th>
+          <th>Acum Mês</th>
+          <th>Projec.</th>
+          <th>Orçam.</th>
+          <th>Falta/Dia</th>
+          <th>P/O</th>
+          <th>Abr</th>
+          <th>Orçam.</th>
+          <th>P/O</th>
+          <th>Orçam.</th>
+          <th>Trans</th>
+          <th>Abr</th>
+          <th>P/O</th>
+        </tr>
+      </thead>
+      <tbody>
+        {[
+          { name: 'SOL VAGOS', stores: ['Vagos Norte', 'Vagos Sul'] },
+          { name: 'SOL AVEIRO', stores: ['Aveiro Norte', 'Aveiro Sul'] },
+          { name: 'SOL OVAR', stores: ['Ovar Norte', 'Ovar Sul'] },
+          { name: 'VILAR PARAÍSO', stores: ['Vilar do Paraíso Norte'] }
+        ].map(group => {
+          const groupKpis = kpis.filter(k => group.stores.includes(k.store));
+          if (groupKpis.length === 0) return null;
+
+          const subYesterdaySales = groupKpis.reduce((acc, k) => acc + k.yesterdaySales, 0);
+          const subAccumSales = groupKpis.reduce((acc, k) => acc + k.accumMonthSales, 0);
+          const subProjectedSales = groupKpis.reduce((acc, k) => acc + k.projectedSales, 0);
+          const subBudgetSales = groupKpis.reduce((acc, k) => acc + k.budgetSales, 0);
+          const subAccumTrans = groupKpis.reduce((acc, k) => acc + k.accumMonthTransactions, 0);
+          const subBudgetTrans = groupKpis.reduce((acc, k) => acc + k.budgetTransactions, 0);
+          const subBudgetReceipt = subBudgetTrans > 0 ? subBudgetSales / subBudgetTrans : 0;
+          const subAvgReceipt = subAccumTrans > 0 ? subAccumSales / subAccumTrans : 0;
+
+          return (
+            <React.Fragment key={group.name}>
+              {groupKpis.map(k => (
+                <tr key={k.store}>
+                  <td className="store-name">{k.store}</td>
+                  <td>{formatCurrency(k.yesterdaySales)}</td>
+                  <td>{formatCurrency(k.accumMonthSales)}</td>
+                  <td>{formatCurrency(k.projectedSales)}</td>
+                  <td>{formatCurrency(k.budgetSales)}</td>
+                  <td>{renderDailyRequired(k.accumMonthSales, k.budgetSales)}</td>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(k.projectedSales, k.budgetSales), fontWeight: 700 }}>
+                    {formatPercent(k.projectedSales, k.budgetSales)}
+                  </td>
+                  <td>{k.accumMonthTransactions}</td>
+                  <td>{k.budgetTransactions}</td>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(k.accumMonthTransactions, k.budgetTransactions), fontWeight: 700 }}>
+                    {formatPercent(k.accumMonthTransactions, k.budgetTransactions)}
+                  </td>
+                  <td>{formatCurrency(k.budgetReceipt, 2)}</td>
+                  <td>{k.accumMonthTransactions}</td>
+                  <td>{formatCurrency(k.accumMonthSales / (k.accumMonthTransactions || 1), 2)}</td>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(k.accumMonthSales / (k.accumMonthTransactions || 1), k.budgetReceipt), fontWeight: 700 }}>
+                    {formatPercent(k.accumMonthSales / (k.accumMonthTransactions || 1), k.budgetReceipt)}
+                  </td>
+                </tr>
+              ))}
+              {group.stores.length > 1 && (
+                <tr className="subtotal-row">
+                  <td className="store-name">{group.name}</td>
+                  <td>{formatCurrency(subYesterdaySales)}</td>
+                  <td>{formatCurrency(subAccumSales)}</td>
+                  <td>{formatCurrency(subProjectedSales)}</td>
+                  <td>{formatCurrency(subBudgetSales)}</td>
+                  <td>{renderDailyRequired(subAccumSales, subBudgetSales)}</td>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(subProjectedSales, subBudgetSales), fontWeight: 900 }}>
+                    {formatPercent(subProjectedSales, subBudgetSales)}
+                  </td>
+                  <td>{subAccumTrans}</td>
+                  <td>{subBudgetTrans}</td>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(subAccumTrans, subBudgetTrans), fontWeight: 900 }}>
+                    {formatPercent(subAccumTrans, subBudgetTrans)}
+                  </td>
+                  <td>{formatCurrency(subBudgetReceipt, 2)}</td>
+                  <td>{subAccumTrans}</td>
+                  <td>{formatCurrency(subAvgReceipt, 2)}</td>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(subAvgReceipt, subBudgetReceipt), fontWeight: 900 }}>
+                    {formatPercent(subAvgReceipt, subBudgetReceipt)}
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </tbody>
+      <tfoot>
+        <tr className="total-row">
+          <td>TOTAL ÁREAS DE SERVIÇO - ANA</td>
+          <td>{formatCurrency(totalYesterdaySales)}</td>
+          <td>{formatCurrency(totalAccumSales)}</td>
+          <td>{formatCurrency(totalProjectedSales)}</td>
+          <td>{formatCurrency(totalBudgetSales)}</td>
+          <td>{renderDailyRequired(totalAccumSales, totalBudgetSales)}</td>
+          <td style={{ backgroundColor: getPOColor(totalProjectedSales, totalBudgetSales), color: 'white' }}>
+            {formatPercent(totalProjectedSales, totalBudgetSales)}
+          </td>
+          <td>{totalAccumTransactions}</td>
+          <td>{totalBudgetTransactions}</td>
+          <td style={{ color: 'white', backgroundColor: getPOColor(totalAccumTransactions, totalBudgetTransactions), fontWeight: 900 }}>
+            {formatPercent(totalAccumTransactions, totalBudgetTransactions)}
+          </td>
+          <td>{formatCurrency(totalBudgetReceipt, 2)}</td>
+          <td>{totalAccumTransactions}</td>
+          <td>{formatCurrency(totalAvgReceipt, 2)}</td>
+          <td style={{ color: 'white', backgroundColor: getPOColor(totalAvgReceipt, totalBudgetReceipt), fontWeight: 900 }}>
+            {formatPercent(totalAvgReceipt, totalBudgetReceipt)}
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  );
+
   return (
     <div className="performance-container">
+      {/* MODAL MAXIMIZADO */}
+      {isMaximized && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(15, 23, 42, 0.98)', zIndex: 10000,
+          display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'auto'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ color: 'white', margin: 0 }}>Vista Ampliada de Performance</h2>
+            <button 
+              onClick={() => setIsMaximized(false)}
+              style={{
+                background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1.5rem',
+                borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer'
+              }}
+            >
+              FECHAR [X]
+            </button>
+          </div>
+          <div className="table-wrapper maximized" style={{ backgroundColor: 'white', borderRadius: '0.5rem' }}>
+            <TableContent />
+          </div>
+        </div>
+      )}
+
       <div className="performance-header">
         <div>
           <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#1e293b' }}>Resumo de Performance</h2>
@@ -396,45 +552,6 @@ export function PerformanceCockpit() {
 
       {activeTab === 'dashboard' && (
         <div className="dashboard-view animate-in">
-          <div className="table-wrapper">
-            <table className="kpi-table">
-              <colgroup>
-                <col style={{ width: '130px' }} />
-                {/* 14 data columns */}
-                {Array.from({ length: 14 }).map((_, i) => (
-                  <col key={i} style={{ width: `${(100 / 14) * 10 / 10}%` }} />
-                ))}
-              </colgroup>
-              <thead>
-                <tr className="main-headers">
-                  <th rowSpan={2} className="header-store">ÁREAS DE SERVIÇO - ANA</th>
-                  <th colSpan={6} className="header-vendas">Vendas</th>
-                  <th colSpan={3} className="header-trans">Transações</th>
-                  <th colSpan={4} className="header-receita">Receita Média</th>
-                </tr>
-                <tr className="sub-headers">
-                  {/* Vendas */}
-                  <th>Dia ant.</th>
-                  <th>Acum Mês</th>
-                  <th>Projec.</th>
-                  <th>Orçam.</th>
-                  <th>Falta/Dia</th>
-                  <th>P/O</th>
-                  
-                  {/* Transacções */}
-                  <th>Abr</th>
-                  <th>Orçam.</th>
-                  <th>P/O</th>
-
-                  {/* Receita */}
-                  <th>Orçam.</th>
-                  <th>Trans</th>
-                  <th>Abr</th>
-                  <th>P/O</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
                   { name: 'SOL VAGOS', stores: ['Vagos Norte', 'Vagos Sul'] },
                   { name: 'SOL AVEIRO', stores: ['Aveiro Norte', 'Aveiro Sul'] },
                   { name: 'SOL OVAR', stores: ['Ovar Norte', 'Ovar Sul'] },
