@@ -370,10 +370,10 @@ export function PerformanceCockpit() {
       </colgroup>
       <thead>
         <tr className="main-headers">
-          <th rowSpan={2} className="header-store">ÁREAS DE SERVIÇO - ANA</th>
-          <th colSpan={6} className="header-vendas">Vendas</th>
-          <th colSpan={3} className="header-trans">Transações</th>
-          <th colSpan={4} className="header-receita">Receita Média</th>
+          <th rowSpan={2} style={{ backgroundColor: '#f97316', color: 'white', fontWeight: 800 }}>ÁREAS DE SERVIÇO - ANA</th>
+          <th colSpan={6} style={{ backgroundColor: '#3b82f6', color: 'white', fontWeight: 800 }}>Vendas</th>
+          <th colSpan={3} style={{ backgroundColor: '#06b6d4', color: 'white', fontWeight: 800 }}>Transações</th>
+          <th colSpan={4} style={{ backgroundColor: '#10b981', color: 'white', fontWeight: 800 }}>Receita Média</th>
         </tr>
         <tr className="sub-headers">
           <th>Dia ant.</th>
