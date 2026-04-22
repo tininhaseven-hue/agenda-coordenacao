@@ -413,38 +413,38 @@ export function PerformanceCockpit() {
           return (
             <React.Fragment key={group.name}>
               {groupKpis.map((k, idx) => (
-                <tr key={k.store} style={{ backgroundColor: idx % 2 === 0 ? '#e0f2fe' : '#ffffff' }}>
-                  <td className="store-name" style={{ backgroundColor: '#fef08a', borderLeft: '4px solid #f97316', fontWeight: 800, textAlign: 'left', paddingLeft: '10px' }}>{k.store}</td>
-                  <td>{formatCurrency(k.yesterdaySales)}</td>
+                <tr key={k.store} style={{ backgroundColor: idx % 2 === 0 ? '#f0f9ff' : '#ffffff' }}>
+                  <td className="store-name" style={{ backgroundColor: '#fff7ed', borderLeft: '5px solid #f97316', fontWeight: 800, textAlign: 'left', paddingLeft: '12px', color: '#7c2d12' }}>{k.store}</td>
+                  <td style={{ fontWeight: 600 }}>{formatCurrency(k.yesterdaySales)}</td>
                   <td>{formatCurrency(k.accumMonthSales)}</td>
                   <td>{formatCurrency(k.projectedSales)}</td>
                   <td>{formatCurrency(k.budgetSales)}</td>
                   <td>{renderDailyRequired(k.accumMonthSales, k.budgetSales)}</td>
-                  <td style={{ color: 'white', backgroundColor: getPOColor(k.projectedSales, k.budgetSales), fontWeight: 700 }}>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(k.projectedSales, k.budgetSales), fontWeight: 900, fontSize: '0.75rem' }}>
                     {formatPercent(k.projectedSales, k.budgetSales)}
                   </td>
                   <td>{k.accumMonthTransactions}</td>
                   <td>{k.budgetTransactions}</td>
-                  <td style={{ color: 'white', backgroundColor: getPOColor(k.accumMonthTransactions, k.budgetTransactions), fontWeight: 700 }}>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(k.accumMonthTransactions, k.budgetTransactions), fontWeight: 900 }}>
                     {formatPercent(k.accumMonthTransactions, k.budgetTransactions)}
                   </td>
                   <td>{formatCurrency(k.budgetReceipt, 2)}</td>
                   <td>{k.accumMonthTransactions}</td>
                   <td>{formatCurrency(k.accumMonthSales / (k.accumMonthTransactions || 1), 2)}</td>
-                  <td style={{ color: 'white', backgroundColor: getPOColor(k.accumMonthSales / (k.accumMonthTransactions || 1), k.budgetReceipt), fontWeight: 700 }}>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(k.accumMonthSales / (k.accumMonthTransactions || 1), k.budgetReceipt), fontWeight: 900 }}>
                     {formatPercent(k.accumMonthSales / (k.accumMonthTransactions || 1), k.budgetReceipt)}
                   </td>
                 </tr>
               ))}
               {group.stores.length > 1 && (
-                <tr className="subtotal-row" style={{ backgroundColor: '#e2e8f0', fontWeight: 800 }}>
-                  <td className="store-name" style={{ backgroundColor: '#fef08a', borderLeft: '4px solid #f97316', textAlign: 'left', paddingLeft: '10px' }}>{group.name}</td>
+                <tr className="subtotal-row" style={{ backgroundColor: '#cbd5e1', fontWeight: 900, color: '#0f172a' }}>
+                  <td className="store-name" style={{ backgroundColor: '#ffedd5', borderLeft: '5px solid #ea580c', textAlign: 'left', paddingLeft: '12px' }}>{group.name}</td>
                   <td>{formatCurrency(subYesterdaySales)}</td>
                   <td>{formatCurrency(subAccumSales)}</td>
                   <td>{formatCurrency(subProjectedSales)}</td>
                   <td>{formatCurrency(subBudgetSales)}</td>
                   <td>{renderDailyRequired(subAccumSales, subBudgetSales)}</td>
-                  <td style={{ color: 'white', backgroundColor: getPOColor(subProjectedSales, subBudgetSales), fontWeight: 900 }}>
+                  <td style={{ color: 'white', backgroundColor: getPOColor(subProjectedSales, subBudgetSales), fontWeight: 900, fontSize: '0.75rem' }}>
                     {formatPercent(subProjectedSales, subBudgetSales)}
                   </td>
                   <td>{subAccumTrans}</td>
@@ -465,14 +465,14 @@ export function PerformanceCockpit() {
         })}
       </tbody>
       <tfoot>
-        <tr className="total-row">
-          <td>TOTAL ÁREAS DE SERVIÇO - ANA</td>
+        <tr className="total-row" style={{ backgroundColor: '#020617', color: '#ffffff', fontWeight: 900 }}>
+          <td style={{ textAlign: 'left', paddingLeft: '12px', borderLeft: '5px solid #3b82f6', backgroundColor: '#020617', color: '#ffffff' }}>TOTAL ÁREAS DE SERVIÇO - ANA</td>
           <td>{formatCurrency(totalYesterdaySales)}</td>
           <td>{formatCurrency(totalAccumSales)}</td>
           <td>{formatCurrency(totalProjectedSales)}</td>
           <td>{formatCurrency(totalBudgetSales)}</td>
           <td>{renderDailyRequired(totalAccumSales, totalBudgetSales)}</td>
-          <td style={{ backgroundColor: getPOColor(totalProjectedSales, totalBudgetSales), color: 'white' }}>
+          <td style={{ backgroundColor: getPOColor(totalProjectedSales, totalBudgetSales), color: 'white', fontWeight: 900, fontSize: '0.8rem' }}>
             {formatPercent(totalProjectedSales, totalBudgetSales)}
           </td>
           <td>{totalAccumTransactions}</td>
