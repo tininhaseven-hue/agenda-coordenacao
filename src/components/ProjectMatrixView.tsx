@@ -114,18 +114,41 @@ export function ProjectMatrixView({
                    }}>
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'center' }}>
                        <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{row.name}</span>
-                       <div 
-                         onClick={() => handleEditHours(row.id, row.hours)}
-                         className="no-print"
-                         style={{ 
-                           fontSize: '0.65rem', 
-                           color: (row.hours || 0) < 40 ? '#ef4444' : '#22c55e', 
-                           cursor: 'pointer',
-                           fontWeight: 800
-                         }}
-                       >
-                         {row.hours !== undefined ? `${row.hours}h` : '0h'}
-                       </div>
+                       {editingHoursRowId === row.id ? (
+                         <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
+                           <input 
+                             type="number" 
+                             autoFocus
+                             value={editHoursValue} 
+                             onChange={(e) => setEditHoursValue(e.target.value === '' ? '' : Number(e.target.value))}
+                             onBlur={() => saveHours(row.id)}
+                             onKeyDown={(e) => e.key === 'Enter' && saveHours(row.id)}
+                             style={{ width: '45px', padding: '0.1rem 0.2rem', fontSize: '0.7rem', border: '1px solid #FF7300', borderRadius: '4px', textAlign: 'center' }}
+                           />
+                           <span style={{ fontSize: '0.7rem' }}>h</span>
+                         </div>
+                       ) : (
+                         <div 
+                           onClick={() => handleEditHours(row.id, row.hours)}
+                           className="no-print"
+                           style={{ 
+                             fontSize: '0.65rem', 
+                             color: (row.hours || 0) < 40 ? '#ef4444' : '#22c55e', 
+                             cursor: 'pointer',
+                             fontWeight: 800,
+                             display: 'flex',
+                             alignItems: 'center',
+                             gap: '2px',
+                             padding: '2px 4px',
+                             borderRadius: '4px',
+                             backgroundColor: '#f1f5f9'
+                           }}
+                           title="Clique para editar horas"
+                         >
+                           {row.hours !== undefined ? `${row.hours}h` : '0h'}
+                           <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>✏️</span>
+                         </div>
+                       )}
                        <div className="no-print" style={{ display: 'flex', gap: '0.4rem', borderTop: '1px solid #eee', marginTop: '0.25rem', paddingTop: '0.25rem' }}>
                           <button onClick={() => setHiddenRows([...hiddenRows, row.id])} style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '0.7rem', cursor: 'pointer' }} title="Ocultar">👁️‍🗨️</button>
                           <button onClick={() => onDeleteRow(project.id, row.id, store)} style={{ background: 'transparent', border: 'none', color: '#fca5a5', fontSize: '0.7rem', cursor: 'pointer' }} title="Eliminar">🗑️</button>
@@ -153,7 +176,7 @@ export function ProjectMatrixView({
                                onChange={(e) => setEditHoursValue(e.target.value === '' ? '' : Number(e.target.value))}
                                onBlur={() => saveHours(row.id)}
                                onKeyDown={(e) => e.key === 'Enter' && saveHours(row.id)}
-                               style={{ width: '45px', padding: '0.1rem 0.2rem', fontSize: '0.7rem', border: '1px solid var(--primary-color)', borderRadius: '4px' }}
+                               style={{ width: '45px', padding: '0.1rem 0.2rem', fontSize: '0.7rem', border: '1px solid #FF7300', borderRadius: '4px', textAlign: 'center' }}
                              />
                              <span style={{ fontSize: '0.7rem' }}>h</span>
                            </div>
@@ -165,13 +188,18 @@ export function ProjectMatrixView({
                                color: (row.hours || 0) < 40 ? '#ef4444' : '#22c55e', 
                                cursor: 'pointer', 
                                display: 'inline-flex', 
+                               alignItems: 'center',
+                               gap: '2px',
                                marginLeft: '0.5rem',
-                               borderBottom: '1px dotted #cbd5e1',
+                               padding: '1px 4px',
+                               borderRadius: '4px',
+                               backgroundColor: '#f1f5f9',
                                fontWeight: 800
                              }}
                              title="Clique para editar horas"
                            >
                              {row.hours !== undefined ? `${row.hours}h` : '0h'}
+                             <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>✏️</span>
                            </div>
                          )}
                        </div>
