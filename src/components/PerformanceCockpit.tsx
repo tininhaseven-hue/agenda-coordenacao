@@ -414,7 +414,7 @@ export function PerformanceCockpit() {
             <React.Fragment key={group.name}>
               {groupKpis.map((k, idx) => (
                 <tr key={k.store} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                  <td className="store-name" style={{ textAlign: 'left', paddingLeft: '10px', fontWeight: 700, borderLeft: '1px solid #e2e8f0' }}>{k.store}</td>
+                  <td className="store-name" style={{ textAlign: 'left', paddingLeft: '10px', fontWeight: 700 }}>{k.store}</td>
                   <td>{formatCurrency(k.yesterdaySales)}</td>
                   <td>{formatCurrency(k.accumMonthSales)}</td>
                   <td>{formatCurrency(k.projectedSales)}</td>
@@ -437,25 +437,25 @@ export function PerformanceCockpit() {
                 </tr>
               ))}
               {group.stores.length > 1 && (
-                <tr className="subtotal-row" style={{ backgroundColor: '#ffffff', fontWeight: 800, color: '#1e293b' }}>
-                  <td className="store-name" style={{ textAlign: 'left', paddingLeft: '10px', fontWeight: 900 }}>{group.name}</td>
-                  <td style={{ fontWeight: 800 }}>{formatCurrency(subYesterdaySales)}</td>
-                  <td style={{ fontWeight: 800 }}>{formatCurrency(subAccumSales)}</td>
-                  <td style={{ fontWeight: 800 }}>{formatCurrency(subProjectedSales)}</td>
-                  <td style={{ fontWeight: 800 }}>{formatCurrency(subBudgetSales)}</td>
-                  <td style={{ fontWeight: 800 }}>{renderDailyRequired(subAccumSales, subBudgetSales)}</td>
-                  <td style={{ color: 'white', backgroundColor: '#64748b', fontWeight: 900 }}>
+                <tr className="subtotal-row" style={{ backgroundColor: '#64748b', fontWeight: 900, color: '#ffffff' }}>
+                  <td className="store-name" style={{ textAlign: 'left', paddingLeft: '10px', backgroundColor: '#64748b', color: '#ffffff' }}>{group.name}</td>
+                  <td>{formatCurrency(subYesterdaySales)}</td>
+                  <td>{formatCurrency(subAccumSales)}</td>
+                  <td>{formatCurrency(subProjectedSales)}</td>
+                  <td>{formatCurrency(subBudgetSales)}</td>
+                  <td>{renderDailyRequired(subAccumSales, subBudgetSales)}</td>
+                  <td style={{ color: 'white', backgroundColor: '#475569', fontWeight: 900 }}>
                     {formatPercent(subProjectedSales, subBudgetSales)}
                   </td>
-                  <td style={{ fontWeight: 800 }}>{subAccumTrans}</td>
-                  <td style={{ fontWeight: 800 }}>{subBudgetTrans}</td>
-                  <td style={{ color: 'white', backgroundColor: '#64748b', fontWeight: 900 }}>
+                  <td>{subAccumTrans}</td>
+                  <td>{subBudgetTrans}</td>
+                  <td style={{ color: 'white', backgroundColor: '#475569', fontWeight: 900 }}>
                     {formatPercent(subAccumTrans, subBudgetTrans)}
                   </td>
-                  <td style={{ fontWeight: 800 }}>{formatCurrency(subBudgetReceipt, 2)}</td>
-                  <td style={{ fontWeight: 800 }}>{subAccumTrans}</td>
-                  <td style={{ fontWeight: 800 }}>{formatCurrency(subAvgReceipt, 2)}</td>
-                  <td style={{ color: 'white', backgroundColor: '#64748b', fontWeight: 900 }}>
+                  <td>{formatCurrency(subBudgetReceipt, 2)}</td>
+                  <td>{subAccumTrans}</td>
+                  <td>{formatCurrency(subAvgReceipt, 2)}</td>
+                  <td style={{ color: 'white', backgroundColor: '#475569', fontWeight: 900 }}>
                     {formatPercent(subAvgReceipt, subBudgetReceipt)}
                   </td>
                 </tr>
@@ -466,24 +466,24 @@ export function PerformanceCockpit() {
       </tbody>
       <tfoot>
         <tr className="total-row" style={{ backgroundColor: '#1e293b', color: '#ffffff', fontWeight: 900 }}>
-          <td style={{ textAlign: 'left', paddingLeft: '10px', backgroundColor: '#1e293b', color: '#ffffff', fontWeight: 900 }}>TOTAL ÁREAS DE SERVIÇO - ANA</td>
+          <td style={{ textAlign: 'left', paddingLeft: '10px', backgroundColor: '#1e293b', color: '#ffffff' }}>TOTAL ÁREAS DE SERVIÇO - ANA</td>
           <td>{formatCurrency(totalYesterdaySales)}</td>
           <td>{formatCurrency(totalAccumSales)}</td>
           <td>{formatCurrency(totalProjectedSales)}</td>
           <td>{formatCurrency(totalBudgetSales)}</td>
           <td>{renderDailyRequired(totalAccumSales, totalBudgetSales)}</td>
-          <td style={{ backgroundColor: '#64748b', color: 'white', fontWeight: 900 }}>
+          <td style={{ backgroundColor: '#475569', color: 'white', fontWeight: 900 }}>
             {formatPercent(totalProjectedSales, totalBudgetSales)}
           </td>
           <td>{totalAccumTransactions}</td>
           <td>{totalBudgetTransactions}</td>
-          <td style={{ color: 'white', backgroundColor: '#64748b', fontWeight: 900 }}>
+          <td style={{ color: 'white', backgroundColor: '#475569', fontWeight: 900 }}>
             {formatPercent(totalAccumTransactions, totalBudgetTransactions)}
           </td>
           <td>{formatCurrency(totalBudgetReceipt, 2)}</td>
           <td>{totalAccumTransactions}</td>
           <td>{formatCurrency(totalAvgReceipt, 2)}</td>
-          <td style={{ color: 'white', backgroundColor: '#64748b', fontWeight: 900 }}>
+          <td style={{ color: 'white', backgroundColor: '#475569', fontWeight: 900 }}>
             {formatPercent(totalAvgReceipt, totalBudgetReceipt)}
           </td>
         </tr>
