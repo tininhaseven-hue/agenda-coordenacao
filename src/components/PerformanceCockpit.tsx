@@ -797,36 +797,45 @@ export function PerformanceCockpit() {
         }
 
         .header-store { background: #f97316; }
-        .header-vendas { background: #3b82f6; }
-        .header-trans { background: #06b6d4; }
-        .header-receita { background: #10b981; }
+        .header-vendas { background: #2563eb; }
+        .header-trans { background: #0891b2; }
+        .header-receita { background: #059669; }
 
         .sub-headers th {
-          background: #f8fafc;
-          color: #475569;
-          font-weight: 700;
+          background: #f1f5f9;
+          color: #334155;
+          font-weight: 800;
+          border-bottom: 2px solid #cbd5e1;
         }
+
+        .kpi-table tr:nth-child(even) { background-color: #f8fafc; }
+        .kpi-table tr:hover { background-color: #f1f5f9; transition: background 0.2s; }
 
         .store-name {
           text-align: left !important;
-          font-weight: 700;
+          font-weight: 800;
           color: #1e293b;
-          background: #f8fafc;
+          background: #fff7ed !important;
+          border-left: 4px solid #f97316 !important;
+          padding-left: 0.75rem !important;
         }
 
         .total-row {
-          background: #1e293b;
-          color: white;
-          font-weight: 800;
+          background: #0f172a !important;
+          color: #f8fafc !important;
+          font-weight: 900;
+          font-size: 0.75rem !important;
         }
 
         .subtotal-row {
-          background: #f1f5f9;
+          background: #e2e8f0 !important;
           font-weight: 800;
+          color: #1e293b;
         }
 
         .subtotal-row td {
-          border-top: 2px solid #cbd5e1 !important;
+          border-top: 2px solid #94a3b8 !important;
+          border-bottom: 2px solid #94a3b8 !important;
         }
 
         .entry-card {
