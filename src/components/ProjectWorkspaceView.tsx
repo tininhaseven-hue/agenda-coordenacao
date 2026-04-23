@@ -45,6 +45,7 @@ export function ProjectWorkspaceView({
                   onChange={(e) => onUpdateBlock(block.id, { title: e.target.value })}
                   placeholder="Título do bloco..."
                   className="block-title-input"
+                  spellCheck={true}
                 />
               </div>
               <button 
@@ -65,7 +66,8 @@ export function ProjectWorkspaceView({
                   config={{
                     readonly: false,
                     placeholder: 'Comece a escrever...',
-                    height: 300
+                    height: 300,
+                    spellcheck: true
                   }}
                 />
               )}
@@ -93,6 +95,7 @@ export function ProjectWorkspaceView({
                           textDecoration: task.isDone ? 'line-through' : 'none',
                           color: task.isDone ? '#94a3b8' : 'inherit'
                         }}
+                        spellCheck={true}
                       />
                       <button 
                         onClick={() => {
@@ -134,6 +137,7 @@ export function ProjectWorkspaceView({
                                 newHeaders[i] = e.target.value;
                                 onUpdateBlock(block.id, { table: { ...block.table!, headers: newHeaders } });
                               }}
+                              spellCheck={true}
                             />
                             <button 
                               onClick={() => {
@@ -177,6 +181,7 @@ export function ProjectWorkspaceView({
                                   );
                                   onUpdateBlock(block.id, { table: { ...block.table!, rows: newRows } });
                                 }}
+                                spellCheck={true}
                               />
                             </td>
                           ))}
