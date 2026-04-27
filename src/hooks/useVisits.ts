@@ -7,6 +7,19 @@ export function useVisits() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    // Sincronização Inteligente com a Nuvem
+    const performSync = async () => {
+      try {
+        const { fullTwoWaySync } = await import('@/utils/syncUtils');
+        await fullTwoWaySync();
+      } catch (e) {
+        console.error("Erro na sincronização inicial useVisits:", e);
+      }
+    };
+    performSync();
+  }, []);
+
+  useEffect(() => {
     const stored = localStorage.getItem('visitas_agenda');
     if (stored) {
       try {
@@ -20,7 +33,13 @@ export function useVisits() {
 
   const saveVisits = (newVisits: Visit[]) => {
     setVisits(newVisits);
-    localStorage.setItem('visitas_agenda', JSON.stringify(newVisits));
+    const val = JSON.stringify(newVisits);
+    localStorage.setItem('visitas_agenda', val);
+    
+    // PUSH to cloud
+    import('@/utils/syncUtils').then(mod => {
+      mod.pushToCloud('visitas_agenda', val);
+    });
   };
 
   const addVisit = (store: Store, date: string, type: VisitType, accompaniment: string, objective: string) => {

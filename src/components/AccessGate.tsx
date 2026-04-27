@@ -21,7 +21,12 @@ export function AccessGate({ children }: AccessGateProps) {
 
   const handleSyncStatus = (status: 'idle' | 'success' | 'error', message?: string) => {
     setSyncStatus(status);
-    if (message) setSyncError(message);
+    if (message) {
+      setSyncError(message);
+      console.log("Erro de Sync:", message);
+    } else if (status === 'success') {
+      setSyncError(null);
+    }
   };
 
   useEffect(() => {
@@ -151,29 +156,75 @@ export function AccessGate({ children }: AccessGateProps) {
             💾 <span className="hide-mobile">Backup</span>
           </button>
           
-          <button 
-            onClick={handleLogout}
-            style={{
-              backgroundColor: 'rgba(15, 23, 42, 0.6)',
-              color: '#94a3b8',
-              border: '1px solid #334155',
-              borderRadius: '4px',
-              padding: '4px 12px',
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-              backdropFilter: 'blur(4px)',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
-            onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
-          >
-            Sair
-          </button>
-        </div>
-        {children}
-      </>
-    );
-  }
+            <button 
+              onClick={async () => {
+                if (confirm('Atenção: Isto irá apagar a memória local e recarregar TUDO da nuvem. Deseja continuar?')) {
+                  // Limpar TUDO exceto o PIN
+                  const pin = localStorage.getItem('agenda_access_granted');
+                  localStorage.clear();
+                  if (pin) localStorage.setItem('agenda_access_granted', pin);
+                  window.location.reload();
+                }
+              }}
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                borderRadius: '4px',
+                padding: '4px 8px',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              title="Limpar Local e Forçar Nuvem"
+            >
+              ⚠️ <span className="hide-mobile">HARD SYNC</span>
+            </button>
+
+            <button 
+              onClick={handleLogout}
+              style={{
+                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                color: '#94a3b8',
+                border: '1px solid #334155',
+                borderRadius: '4px',
+                padding: '4px 12px',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                backdropFilter: 'blur(4px)',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
+              onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+            >
+              Sair
+            </button>
+          </div>
+          {syncError && (
+            <div style={{
+              position: 'fixed',
+              top: '3.5rem',
+              right: '1rem',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              zIndex: 10001,
+              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+              maxWidth: '300px'
+            }}>
+              ⚠️ Erro de Sincronização: {syncError}
+            </div>
+          )}
+          {children}
+        </>
+      );
+    }
 
   return (
     <div style={{

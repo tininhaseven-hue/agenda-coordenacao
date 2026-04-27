@@ -42,18 +42,17 @@ export function useRoutines(activeDateStr: string) {
   }, []);
 
   useEffect(() => {
-    // Sincronização Inicial com a Nuvem
-    const syncWithCloud = async () => {
-      const cloudData = await pullFromCloud();
-      if (cloudData) {
-        Object.entries(cloudData).forEach(([key, value]) => {
-          localStorage.setItem(key, value);
-        });
-        refreshActiveDays();
+    // Sincronização Inteligente com a Nuvem
+    const performSync = async () => {
+      try {
+        const { fullTwoWaySync } = await import('@/utils/syncUtils');
+        await fullTwoWaySync();
+      } catch (e) {
+        console.error("Erro na sincronização inicial useRoutines:", e);
       }
     };
-    syncWithCloud();
-  }, [refreshActiveDays]);
+    performSync();
+  }, []);
 
   useEffect(() => {
     const loadedData: Record<string, Record<string, RoutineExecution>> = {};
@@ -392,8 +391,9 @@ export function useRoutines(activeDateStr: string) {
           const defsStr = localStorage.getItem(`custom_task_definitions_${targetStore}`);
           if (defsStr) {
             let defs = JSON.parse(defsStr);
-            defs = defs.map((d: any) => d.id === id ? { ...d, isCompleted: taskAfterToggle.isCompleted } : d);
-            localStorage.setItem(`custom_task_definitions_${targetStore}`, JSON.stringify(defs));
+            const val = JSON.stringify(defs);
+            localStorage.setItem(`custom_task_definitions_${targetStore}`, val);
+            pushToCloud(`custom_task_definitions_${targetStore}`, val);
           }
         } else {
           // Normal task or recurring task (per-day instance)
@@ -445,8 +445,9 @@ export function useRoutines(activeDateStr: string) {
            const defsStr = localStorage.getItem(`custom_task_definitions_${targetStore}`);
            if (defsStr) {
              let defs = JSON.parse(defsStr);
-             defs = defs.map((d: any) => d.id === id ? { ...d, ...updates } : d);
-             localStorage.setItem(`custom_task_definitions_${targetStore}`, JSON.stringify(defs));
+             const val = JSON.stringify(defs);
+             localStorage.setItem(`custom_task_definitions_${targetStore}`, val);
+             pushToCloud(`custom_task_definitions_${targetStore}`, val);
            }
         }
 
@@ -455,10 +456,14 @@ export function useRoutines(activeDateStr: string) {
           if (defsStr) {
             let defs = JSON.parse(defsStr);
             defs = defs.map((d: any) => d.id === id ? { ...d, ...updates } : d);
-            localStorage.setItem(`custom_task_definitions_${targetStore}`, JSON.stringify(defs));
+            const val = JSON.stringify(defs);
+            localStorage.setItem(`custom_task_definitions_${targetStore}`, val);
+            pushToCloud(`custom_task_definitions_${targetStore}`, val);
           } else {
             // Se estamos atualizando uma definição recorrente que não existe na loja alvo, criamos o def
-            localStorage.setItem(`custom_task_definitions_${targetStore}`, JSON.stringify([{...taskAfterUpdate}]));
+            const val = JSON.stringify([{...taskAfterUpdate}]);
+            localStorage.setItem(`custom_task_definitions_${targetStore}`, val);
+            pushToCloud(`custom_task_definitions_${targetStore}`, val);
           }
         }
 
@@ -496,8 +501,9 @@ export function useRoutines(activeDateStr: string) {
           const defsStr = localStorage.getItem(`custom_task_definitions_${targetStore}`);
           if (defsStr) {
              let defs = JSON.parse(defsStr);
-             defs = defs.filter((d: any) => d.id !== id);
-             localStorage.setItem(`custom_task_definitions_${targetStore}`, JSON.stringify(defs));
+             const val = JSON.stringify(defs);
+             localStorage.setItem(`custom_task_definitions_${targetStore}`, val);
+             pushToCloud(`custom_task_definitions_${targetStore}`, val);
           }
         }
         
@@ -534,7 +540,9 @@ export function useRoutines(activeDateStr: string) {
         const current = storeData[id] || { completed: false, notes: '' };
 
         const updatedStoreData = { ...storeData, [id]: { ...current, rescheduledTo: toDateStr } };
-        localStorage.setItem(`routines_${fromDateStr}_${targetStore}`, JSON.stringify(updatedStoreData));
+        const val = JSON.stringify(updatedStoreData);
+        localStorage.setItem(`routines_${fromDateStr}_${targetStore}`, val);
+        pushToCloud(`routines_${fromDateStr}_${targetStore}`, val);
         newPrev[targetStore] = updatedStoreData;
 
         if (!globalIdx[targetStore]) globalIdx[targetStore] = {};
@@ -548,7 +556,9 @@ export function useRoutines(activeDateStr: string) {
         });
       });
 
-      localStorage.setItem(globalIdxKey, JSON.stringify(globalIdx));
+      const idxVal = JSON.stringify(globalIdx);
+      localStorage.setItem(globalIdxKey, idxVal);
+      pushToCloud(globalIdxKey, idxVal);
       setTimeout(() => refreshActiveDays(), 10);
       return newPrev;
     });
@@ -566,12 +576,16 @@ export function useRoutines(activeDateStr: string) {
         if (!taskToMove) return;
 
         const updatedSource = currentTasks.filter(t => t.id !== id);
-        localStorage.setItem(`customTasks_${fromDateStr}_${targetStore}`, JSON.stringify(updatedSource));
+        const sourceVal = JSON.stringify(updatedSource);
+        localStorage.setItem(`customTasks_${fromDateStr}_${targetStore}`, sourceVal);
+        pushToCloud(`customTasks_${fromDateStr}_${targetStore}`, sourceVal);
         newPrev[targetStore] = updatedSource;
 
         const targetTasksStr = localStorage.getItem(`customTasks_${toDateStr}_${targetStore}`);
         const targetTasks = targetTasksStr ? JSON.parse(targetTasksStr) : [];
-        localStorage.setItem(`customTasks_${toDateStr}_${targetStore}`, JSON.stringify([...targetTasks, taskToMove]));
+        const targetVal = JSON.stringify([...targetTasks, taskToMove]);
+        localStorage.setItem(`customTasks_${toDateStr}_${targetStore}`, targetVal);
+        pushToCloud(`customTasks_${toDateStr}_${targetStore}`, targetVal);
       });
 
       setTimeout(() => refreshActiveDays(), 10);

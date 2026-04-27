@@ -47,17 +47,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { key, value } = await req.json();
+    const { key, value, updatedAt: clientTs } = await req.json();
 
     if (!key) {
       return NextResponse.json({ error: 'Chave em falta' }, { status: 400 });
     }
 
-    const updatedAt = Date.now();
+    const updatedAt = clientTs || Date.now();
 
-    // Upsert (Insert or Replace)
+    // Upsert com proteção de timestamp: só atualiza se o novo for maior
     await db.execute({
-      sql: 'INSERT OR REPLACE INTO SyncData (key, value, updatedAt) VALUES (?, ?, ?)',
+      sql: `INSERT INTO SyncData (key, value, updatedAt) 
+            VALUES (?, ?, ?)
+            ON CONFLICT(key) DO UPDATE SET 
+              value = excluded.value,
+              updatedAt = excluded.updatedAt
+            WHERE excluded.updatedAt > SyncData.updatedAt`,
       args: [key, value, updatedAt]
     });
 

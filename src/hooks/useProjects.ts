@@ -29,11 +29,14 @@ export function useProjects(activeStore: string) {
     if (storedProjects) {
       try { 
         const parsed = JSON.parse(storedProjects);
-        let renamed = parsed.map((p: Project) => 
-          (p.id === 'proj_seed_formacao' && p.title === 'Formação de Excelência 2026') 
-            ? { ...p, title: 'Formações 2026' } 
-            : p
-        );
+        let changed = false;
+        let renamed = parsed.map((p: Project) => {
+          if (p.id === 'proj_seed_formacao' && p.title === 'Formação de Excelência 2026') {
+            changed = true;
+            return { ...p, title: 'Formações 2026' };
+          }
+          return p;
+        });
 
         // --- MIGRAÇÃO: Injetar Projeto de Entrevistas se não existir ---
         if (!renamed.find((p: any) => p.id === 'proj_gestao_entrevistas')) {
@@ -76,12 +79,17 @@ export function useProjects(activeStore: string) {
             createdAt: Date.now()
           };
           renamed.push(interviewProject);
+          changed = true;
         }
 
         console.log("Agenda: Projetos carregados:", renamed.length);
         setProjects(renamed);
-        localStorage.setItem('projects_global', JSON.stringify(renamed));
-        pushToCloud('projects_global', JSON.stringify(renamed));
+        
+        // Só persistir se houve mudança (migração)
+        if (changed) {
+          localStorage.setItem('projects_global', JSON.stringify(renamed));
+          pushToCloud('projects_global', JSON.stringify(renamed));
+        }
       } catch(e) { setProjects([]); }
     } else {
       const initialProjects: Project[] = [
@@ -225,20 +233,28 @@ export function useProjects(activeStore: string) {
     setExecutions(storedExecutions);
   }, []);
 
-  const saveProjects = (newProjects: Project[]) => {
-    setProjects(newProjects);
-    localStorage.setItem('projects_global', JSON.stringify(newProjects));
-    const val = JSON.stringify(newProjects);
+  // Função interna para persistir sem duplicar o setProjects se já estivermos num loop de atualização
+  const persistProjects = (updatedProjects: Project[]) => {
+    const val = JSON.stringify(updatedProjects);
     localStorage.setItem('projects_global', val);
     pushToCloud('projects_global', val);
+  };
+
+  const saveProjects = (newProjects: Project[]) => {
+    setProjects(newProjects);
+    persistProjects(newProjects);
+  };
+
+  const persistExecutions = (store: string, storeExecs: ProjectExecution[]) => {
+    const val = JSON.stringify(storeExecs);
+    localStorage.setItem(`project_executions_${store}`, val);
+    pushToCloud(`project_executions_${store}`, val);
   };
 
   const saveExecutions = (store: string, storeExecs: ProjectExecution[]) => {
     setExecutions(prev => {
       const updated = { ...prev, [store]: storeExecs };
-      const val = JSON.stringify(storeExecs);
-      localStorage.setItem(`project_executions_${store}`, val);
-      pushToCloud(`project_executions_${store}`, val);
+      persistExecutions(store, storeExecs);
       return updated;
     });
   };
@@ -275,383 +291,466 @@ export function useProjects(activeStore: string) {
   };
 
   const addTaskToProject = (projectId: string, text: string) => {
-    const updated = projects.map(p => {
-      if (p.id === projectId) {
-        const newTask: ProjectTask = { id: `pt_${Date.now()}`, text, isDone: false };
-        return { ...p, tasks: [...p.tasks, newTask] };
-      }
-      return p;
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id === projectId) {
+          const newTask: ProjectTask = { id: `pt_${Date.now()}`, text, isDone: false };
+          return { ...p, tasks: [...p.tasks, newTask] };
+        }
+        return p;
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const removeTaskFromProject = (projectId: string, taskId: string) => {
-    const updated = projects.map(p => {
-      if (p.id === projectId) {
-        return { ...p, tasks: p.tasks.filter(t => t.id !== taskId) };
-      }
-      return p;
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id === projectId) {
+          return { ...p, tasks: p.tasks.filter(t => t.id !== taskId) };
+        }
+        return p;
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const toggleTaskExecution = (projectId: string, taskId: string, store: string) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    
-    if (!exec) {
-      exec = { projectId, store, completedTaskIds: [] };
-      storeExecs.push(exec);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      
+      if (!exec) {
+        exec = { projectId, store, completedTaskIds: [] };
+        storeExecs.push(exec);
+      }
 
-    if (exec.completedTaskIds.includes(taskId)) {
-      exec.completedTaskIds = exec.completedTaskIds.filter(id => id !== taskId);
-    } else {
-      exec.completedTaskIds.push(taskId);
-    }
+      if (exec.completedTaskIds.includes(taskId)) {
+        exec.completedTaskIds = exec.completedTaskIds.filter(id => id !== taskId);
+      } else {
+        exec.completedTaskIds.push(taskId);
+      }
 
-    saveExecutions(store, storeExecs);
+      persistExecutions(store, storeExecs);
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   const updateMatrixCell = (projectId: string, rowId: string, colId: string, store: string) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    
-    if (!exec) {
-      exec = { projectId, store, completedTaskIds: [], matrixData: {}, matrixRows: [] };
-      storeExecs.push(exec);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      
+      if (!exec) {
+        exec = { projectId, store, completedTaskIds: [], matrixData: {}, matrixRows: [] };
+        storeExecs.push(exec);
+      }
 
-    const matrixData = { ...(exec.matrixData || {}) };
-    const key = `${rowId}-${colId}`;
-    matrixData[key] = !matrixData[key];
-    
-    exec.matrixData = matrixData;
-    saveExecutions(store, storeExecs);
+      const matrixData = { ...(exec.matrixData || {}) };
+      const key = `${rowId}-${colId}`;
+      matrixData[key] = !matrixData[key];
+      
+      exec.matrixData = matrixData;
+      persistExecutions(store, storeExecs);
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   const addMatrixRow = (projectId: string, name: string, store: string, hours?: number) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    
-    if (!exec) {
-      exec = { projectId, store, completedTaskIds: [], matrixData: {}, matrixRows: [] };
-      storeExecs.push(exec);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      
+      if (!exec) {
+        exec = { projectId, store, completedTaskIds: [], matrixData: {}, matrixRows: [] };
+        storeExecs.push(exec);
+      }
 
-    const newRow = { id: `row_${Date.now()}`, name, hours };
-    exec.matrixRows = [...(exec.matrixRows || []), newRow];
-    
-    saveExecutions(store, storeExecs);
+      const newRow = { id: `row_${Date.now()}`, name, hours };
+      exec.matrixRows = [...(exec.matrixRows || []), newRow];
+      
+      persistExecutions(store, storeExecs);
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   const deleteMatrixRow = (projectId: string, rowId: string, store: string) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    if (exec && exec.matrixRows) {
-      exec.matrixRows = exec.matrixRows.filter(r => r.id !== rowId);
-      const newMatrixData = { ...(exec.matrixData || {}) };
-      Object.keys(newMatrixData).forEach(key => {
-        if (key.startsWith(`${rowId}-`)) delete newMatrixData[key];
-      });
-      exec.matrixData = newMatrixData;
-      saveExecutions(store, storeExecs);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      if (exec && exec.matrixRows) {
+        exec.matrixRows = exec.matrixRows.filter(r => r.id !== rowId);
+        const newMatrixData = { ...(exec.matrixData || {}) };
+        Object.keys(newMatrixData).forEach(key => {
+          if (key.startsWith(`${rowId}-`)) delete newMatrixData[key];
+        });
+        exec.matrixData = newMatrixData;
+        persistExecutions(store, storeExecs);
+      }
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   const updateMatrixRowHours = (projectId: string, rowId: string, store: string, hours: number) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    if (exec && exec.matrixRows) {
-      exec.matrixRows = exec.matrixRows.map(r => 
-        r.id === rowId ? { ...r, hours } : r
-      );
-      saveExecutions(store, storeExecs);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      if (exec && exec.matrixRows) {
+        exec.matrixRows = exec.matrixRows.map(r => 
+          r.id === rowId ? { ...r, hours } : r
+        );
+        persistExecutions(store, storeExecs);
+      }
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   const addMatrixColumn = (projectId: string, columnName: string) => {
     if (!columnName.trim()) return;
-    const updated = projects.map(p => {
-      if (p.id === projectId) {
-        const currentConfig = p.matrixConfig || { columns: [], rows: [] };
-        return { 
-          ...p, 
-          matrixConfig: { ...currentConfig, columns: [...currentConfig.columns, columnName.trim()] }
-        };
-      }
-      return p;
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id === projectId) {
+          const currentConfig = p.matrixConfig || { columns: [], rows: [] };
+          return { 
+            ...p, 
+            matrixConfig: { ...currentConfig, columns: [...currentConfig.columns, columnName.trim()] }
+          };
+        }
+        return p;
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const deleteMatrixColumn = (projectId: string, colName: string) => {
-    const updated = projects.map(p => {
-      if (p.id === projectId && p.matrixConfig) {
-        return { 
-          ...p, 
-          matrixConfig: { 
-            ...p.matrixConfig, 
-            columns: p.matrixConfig.columns.filter(c => c !== colName) 
-          } 
-        };
-      }
-      return p;
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id === projectId && p.matrixConfig) {
+          return { 
+            ...p, 
+            matrixConfig: { 
+              ...p.matrixConfig, 
+              columns: p.matrixConfig.columns.filter(c => c !== colName) 
+            } 
+          };
+        }
+        return p;
+      });
+      persistProjects(updated);
+      return updated;
     });
-    setProjects(updated);
-    localStorage.setItem('projects_global', JSON.stringify(updated));
 
     // Opcional: Limpar dados da célula em todas as execuções
-    ALL_STORES.forEach(s => {
-      const storeExecs = [...(executions[s] || [])];
-      let exec = storeExecs.find(e => e.projectId === projectId);
-      if (exec && exec.matrixData) {
-        const newData = { ...exec.matrixData };
-        Object.keys(newData).forEach(key => {
-          if (key.endsWith(`-${colName}`)) delete newData[key];
-        });
-        exec.matrixData = newData;
-        saveExecutions(s, storeExecs);
-      }
+    setExecutions(prev => {
+      const newExecutions = { ...prev };
+      ALL_STORES.forEach(s => {
+        const storeExecs = [...(newExecutions[s] || [])];
+        let exec = storeExecs.find(e => e.projectId === projectId);
+        if (exec && exec.matrixData) {
+          const newData = { ...exec.matrixData };
+          Object.keys(newData).forEach(key => {
+            if (key.endsWith(`-${colName}`)) delete newData[key];
+          });
+          exec.matrixData = newData;
+          persistExecutions(s, storeExecs);
+        }
+        newExecutions[s] = storeExecs;
+      });
+      return newExecutions;
     });
   };
 
   const toggleMatrixTranspose = (projectId: string) => {
-    const updated = projects.map(p => {
-      if (p.id === projectId && p.matrixConfig) {
-        return { 
-          ...p, 
-          matrixConfig: { 
-            ...p.matrixConfig, 
-            isTransposed: !p.matrixConfig.isTransposed 
-          } 
-        };
-      }
-      return p;
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id === projectId && p.matrixConfig) {
+          return { 
+            ...p, 
+            matrixConfig: { 
+              ...p.matrixConfig, 
+              isTransposed: !p.matrixConfig.isTransposed 
+            } 
+          };
+        }
+        return p;
+      });
+      saveProjects(updated);
+      return updated;
     });
-    setProjects(updated);
-    localStorage.setItem('projects_global', JSON.stringify(updated));
   };
 
   const renameProject = (projectId: string, newTitle: string) => {
     if (!newTitle.trim()) return;
-    const updated = projects.map(p => {
-      if (p.id === projectId) {
-        return { ...p, title: newTitle.trim() };
-      }
-      return p;
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id === projectId) {
+          return { ...p, title: newTitle.trim() };
+        }
+        return p;
+      });
+      saveProjects(updated);
+      return updated;
     });
-    setProjects(updated);
-    localStorage.setItem('projects_global', JSON.stringify(updated));
   };
 
   const updatePlannerEntries = (projectId: string, month: number, entries: any[]) => {
-    const updated = projects.map(p => {
-      if (p.id === projectId) {
-        const currentData = p.plannerData || {};
-        return { 
-          ...p, 
-          plannerData: { ...currentData, [month]: entries }
-        };
-      }
-      return p;
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id === projectId) {
+          const currentData = p.plannerData || {};
+          return { 
+            ...p, 
+            plannerData: { ...currentData, [month]: entries }
+          };
+        }
+        return p;
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const updateProjectNotes = (projectId: string, notes: string) => {
-    const updated = projects.map(p => {
-      if (p.id === projectId) {
-        return { ...p, projectNotes: notes };
-      }
-      return p;
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id === projectId) {
+          return { ...p, projectNotes: notes };
+        }
+        return p;
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   // --- INCIDENTS ---
 
   const addIncident = (projectId: string, incident: Omit<MaintenanceIncident, 'id'>) => {
     const key = `${incident.store}||${incident.yearMonth}`;
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const current = p.incidentData || {};
-      const list = current[key] || [];
-      const newIncident: MaintenanceIncident = { ...incident, id: `inc_${Date.now()}` };
-      return { ...p, incidentData: { ...current, [key]: [...list, newIncident] } };
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const current = p.incidentData || {};
+        const list = current[key] || [];
+        const newIncident: MaintenanceIncident = { ...incident, id: `inc_${Date.now()}` };
+        return { ...p, incidentData: { ...current, [key]: [...list, newIncident] } };
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const updateIncident = (projectId: string, incidentId: string, data: Partial<MaintenanceIncident>) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const newData: Record<string, MaintenanceIncident[]> = {};
-      Object.entries(p.incidentData || {}).forEach(([key, list]) => {
-        newData[key] = list.map(inc => inc.id === incidentId ? { ...inc, ...data } : inc);
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const newData: Record<string, MaintenanceIncident[]> = {};
+        Object.entries(p.incidentData || {}).forEach(([key, list]) => {
+          newData[key] = list.map(inc => inc.id === incidentId ? { ...inc, ...data } : inc);
+        });
+        return { ...p, incidentData: newData };
       });
-      return { ...p, incidentData: newData };
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const deleteIncident = (projectId: string, incidentId: string) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const newData: Record<string, MaintenanceIncident[]> = {};
-      Object.entries(p.incidentData || {}).forEach(([key, list]) => {
-        newData[key] = list.filter(inc => inc.id !== incidentId);
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const newData: Record<string, MaintenanceIncident[]> = {};
+        Object.entries(p.incidentData || {}).forEach(([key, list]) => {
+          newData[key] = list.filter(inc => inc.id !== incidentId);
+        });
+        return { ...p, incidentData: newData };
       });
-      return { ...p, incidentData: newData };
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const setIncidentBudget = (projectId: string, store: string, annualBudget: number) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const budgets = p.incidentBudgets || {};
-      return { ...p, incidentBudgets: { ...budgets, [store]: annualBudget } };
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const budgets = p.incidentBudgets || {};
+        return { ...p, incidentBudgets: { ...budgets, [store]: annualBudget } };
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   // --- MAINTENANCE (Continuous Tracker) ---
 
   const addMaintenanceTask = (projectId: string, task: Omit<MaintenanceTask, 'id'>) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const current = p.maintenanceData || {};
-      const list = current[task.store] || [];
-      const newTask: MaintenanceTask = { ...task, id: `maint_${Date.now()}` };
-      return { ...p, maintenanceData: { ...current, [task.store]: [...list, newTask] } };
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const current = p.maintenanceData || {};
+        const list = current[task.store] || [];
+        const newTask: MaintenanceTask = { ...task, id: `maint_${Date.now()}` };
+        return { ...p, maintenanceData: { ...current, [task.store]: [...list, newTask] } };
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const updateMaintenanceTask = (projectId: string, taskId: string, updates: Partial<MaintenanceTask>) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const current = p.maintenanceData || {};
-      const newData: Record<string, MaintenanceTask[]> = {};
-      Object.entries(current).forEach(([store, list]) => {
-        newData[store] = list.map(t => t.id === taskId ? { ...t, ...updates } : t);
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const current = p.maintenanceData || {};
+        const newData: Record<string, MaintenanceTask[]> = {};
+        Object.entries(current).forEach(([store, list]) => {
+          newData[store] = list.map(t => t.id === taskId ? { ...t, ...updates } : t);
+        });
+        return { ...p, maintenanceData: newData };
       });
-      return { ...p, maintenanceData: newData };
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const deleteMaintenanceTask = (projectId: string, taskId: string) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const current = p.maintenanceData || {};
-      const newData: Record<string, MaintenanceTask[]> = {};
-      Object.entries(current).forEach(([store, list]) => {
-        newData[store] = list.filter(t => t.id !== taskId);
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const current = p.maintenanceData || {};
+        const newData: Record<string, MaintenanceTask[]> = {};
+        Object.entries(current).forEach(([store, list]) => {
+          newData[store] = list.filter(t => t.id !== taskId);
+        });
+        return { ...p, maintenanceData: newData };
       });
-      return { ...p, maintenanceData: newData };
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   // --- WORKSPACE (Individual por Loja) ---
   const addWorkspaceBlock = (projectId: string, type: any, title: string, store: string) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    
-    if (!exec) {
-      exec = { projectId, store, completedTaskIds: [], workspaceBlocks: [] };
-      storeExecs.push(exec);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      
+      if (!exec) {
+        exec = { projectId, store, completedTaskIds: [], workspaceBlocks: [] };
+        storeExecs.push(exec);
+      }
 
-    const currentBlocks = exec.workspaceBlocks || [];
-    const newBlock = { 
-      id: `block_${Date.now()}`, 
-      type, 
-      title,
-      checklist: type === 'CHECKLIST' ? [] : undefined,
-      table: type === 'TABLE' ? { headers: ['Coluna 1'], rows: [['']] } : undefined,
-      media: type === 'MEDIA' ? [] : undefined,
-      content: type === 'TEXT' ? '<p>Novo bloco de texto...</p>' : ''
-    };
-    
-    exec.workspaceBlocks = [...currentBlocks, newBlock];
-    saveExecutions(store, storeExecs);
+      const currentBlocks = exec.workspaceBlocks || [];
+      const newBlock = { 
+        id: `block_${Date.now()}`, 
+        type, 
+        title,
+        checklist: type === 'CHECKLIST' ? [] : undefined,
+        table: type === 'TABLE' ? { headers: ['Coluna 1'], rows: [['']] } : undefined,
+        media: type === 'MEDIA' ? [] : undefined,
+        content: type === 'TEXT' ? '<p>Novo bloco de texto...</p>' : ''
+      };
+      
+      exec.workspaceBlocks = [...currentBlocks, newBlock];
+      persistExecutions(store, storeExecs);
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   const updateWorkspaceBlock = (projectId: string, blockId: string, updates: any, store: string) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    if (exec && exec.workspaceBlocks) {
-      exec.workspaceBlocks = exec.workspaceBlocks.map(b => 
-        b.id === blockId ? { ...b, ...updates } : b
-      );
-      saveExecutions(store, storeExecs);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      if (exec && exec.workspaceBlocks) {
+        exec.workspaceBlocks = exec.workspaceBlocks.map(b => 
+          b.id === blockId ? { ...b, ...updates } : b
+        );
+        persistExecutions(store, storeExecs);
+      }
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   const deleteWorkspaceBlock = (projectId: string, blockId: string, store: string) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    if (exec && exec.workspaceBlocks) {
-      exec.workspaceBlocks = exec.workspaceBlocks.filter(b => b.id !== blockId);
-      saveExecutions(store, storeExecs);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      if (exec && exec.workspaceBlocks) {
+        exec.workspaceBlocks = exec.workspaceBlocks.filter(b => b.id !== blockId);
+        persistExecutions(store, storeExecs);
+      }
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   const toggleWorkspaceTask = (projectId: string, blockId: string, taskId: string, store: string) => {
-    const storeExecs = [...(executions[store] || [])];
-    let exec = storeExecs.find(e => e.projectId === projectId);
-    if (exec && exec.workspaceBlocks) {
-      exec.workspaceBlocks = exec.workspaceBlocks.map(b => {
-        if (b.id !== blockId || !b.checklist) return b;
-        return {
-          ...b,
-          checklist: b.checklist.map(t => t.id === taskId ? { ...t, isDone: !t.isDone } : t)
-        };
-      });
-      saveExecutions(store, storeExecs);
-    }
+    setExecutions(prev => {
+      const storeExecs = [...(prev[store] || [])];
+      let exec = storeExecs.find(e => e.projectId === projectId);
+      if (exec && exec.workspaceBlocks) {
+        exec.workspaceBlocks = exec.workspaceBlocks.map(b => {
+          if (b.id !== blockId || !b.checklist) return b;
+          return {
+            ...b,
+            checklist: b.checklist.map(t => t.id === taskId ? { ...t, isDone: !t.isDone } : t)
+          };
+        });
+        persistExecutions(store, storeExecs);
+      }
+      return { ...prev, [store]: storeExecs };
+    });
   };
 
   // --- SHOPPING ---
 
   const addShoppingItem = (projectId: string, item: Omit<ShoppingItem, 'id'>) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const current = p.shoppingData || {};
-      const list = current[item.store] || [];
-      const newItem: ShoppingItem = { ...item, id: `shop_${Date.now()}` };
-      return { ...p, shoppingData: { ...current, [item.store]: [...list, newItem] } };
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const current = p.shoppingData || {};
+        const list = current[item.store] || [];
+        const newItem: ShoppingItem = { ...item, id: `shop_${Date.now()}` };
+        return { ...p, shoppingData: { ...current, [item.store]: [...list, newItem] } };
+      });
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const updateShoppingItem = (projectId: string, itemId: string, updates: Partial<ShoppingItem>) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const current = p.shoppingData || {};
-      const newData: Record<string, ShoppingItem[]> = {};
-      Object.entries(current || {}).forEach(([store, list]) => {
-        newData[store] = list.map(t => t.id === itemId ? { ...t, ...updates } : t);
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const current = p.shoppingData || {};
+        const newData: Record<string, ShoppingItem[]> = {};
+        Object.entries(current || {}).forEach(([store, list]) => {
+          newData[store] = list.map(t => t.id === itemId ? { ...t, ...updates } : t);
+        });
+        return { ...p, shoppingData: newData };
       });
-      return { ...p, shoppingData: newData };
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const deleteShoppingItem = (projectId: string, itemId: string) => {
-    const updated = projects.map(p => {
-      if (p.id !== projectId) return p;
-      const current = p.shoppingData || {};
-      const newData: Record<string, ShoppingItem[]> = {};
-      Object.entries(current || {}).forEach(([store, list]) => {
-        newData[store] = list.filter(t => t.id !== itemId);
+    setProjects(prev => {
+      const updated = prev.map(p => {
+        if (p.id !== projectId) return p;
+        const current = p.shoppingData || {};
+        const newData: Record<string, ShoppingItem[]> = {};
+        Object.entries(current || {}).forEach(([store, list]) => {
+          newData[store] = list.filter(t => t.id !== itemId);
+        });
+        return { ...p, shoppingData: newData };
       });
-      return { ...p, shoppingData: newData };
+      saveProjects(updated);
+      return updated;
     });
-    saveProjects(updated);
   };
 
   const getProjectProgress = (projectId: string, store: string) => {

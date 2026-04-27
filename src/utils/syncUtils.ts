@@ -75,26 +75,26 @@ export async function fullTwoWaySync(onStatus?: (status: 'idle' | 'success' | 'e
         const { value: cloudValue, updatedAt: cloudTs } = cloudItem;
         
         const localValue = localStorage.getItem(key);
-        const isEmptyLocal = !localValue || localValue === '{}';
+        const isEmptyLocal = !localValue || localValue === '{}' || localValue === '[]';
         
         const localTsStr = localStorage.getItem('sync_ts_' + key);
         const localTs = localTsStr ? parseInt(localTsStr, 10) : 0;
 
         // LÓGICA DE PROTEÇÃO: 
-        // Só aceitamos dados da nuvem se:
+        // Aceitamos dados da nuvem se:
         // 1. O local estiver vazio (primeira vez)
         // 2. TIVERMOS um registo de sincronização anterior (localTs > 0) E a nuvem for realmente mais recente
+        // 3. O localTs for 0 MAS a nuvem tiver dados e o local for diferente (Prevenir perda de dados na primeira sincronização de um novo dispositivo)
         const nuvemMaisRecente = localTs > 0 && cloudTs > localTs;
+        const primeiroSyncComNuvemCheia = localTs === 0 && cloudValue !== localValue && cloudValue !== '{}' && cloudValue !== '[]';
 
-        if ((isEmptyLocal && cloudValue !== '{}' && cloudValue !== '[]') || nuvemMaisRecente) {
+        if ((isEmptyLocal && cloudValue !== '{}' && cloudValue !== '[]') || nuvemMaisRecente || primeiroSyncComNuvemCheia) {
           localStorage.setItem(key, cloudValue);
           localStorage.setItem('sync_ts_' + key, cloudTs.toString());
           dataUpdated = true;
           console.log(`Atualizado: ${key} (vinda da nuvem)`);
         } else if (!isEmptyLocal && cloudValue !== localValue) {
-          // Se o local tem dados e é diferente da nuvem, mas não temos certeza de quem é mais novo,
-          // forçamos o PUSH do local para a nuvem para garantir que não perdemos nada.
-          console.log(`Conflito detetado em ${key}: Mantendo local e agendando envio.`);
+          console.log(`Conflito em ${key}: Local tem dados e não temos certeza. Favorecendo local para PUSH.`);
         }
       });
     }
@@ -111,20 +111,13 @@ export async function fullTwoWaySync(onStatus?: (status: 'idle' | 'success' | 'e
 
     for (const key of keysToSync) {
       const localValue = localStorage.getItem(key);
-      if (localValue && localValue !== '{}') {
+      if (localValue && localValue !== '{}' && localValue !== '[]') {
         const cloudItem = cloudData?.[key];
         
-        // Se nuvem n tem o dado, ou o local value é diferente E a nuvem não era mais recente
+        // Se nuvem não tem o dado, ou o local value é diferente
         if (!cloudItem || cloudItem.value !== localValue) {
-           const localTsStr = localStorage.getItem('sync_ts_' + key);
-           const localTs = localTsStr ? parseInt(localTsStr, 10) : 0;
-           const cloudTs = cloudItem?.updatedAt || 0;
-           
-           // Apenas envia para a cloud se não acabámos de decidir (no PULL acima) que a Cloud era mais nova (pois caso fosse, já teríamos atualizado o localStorage e cloudItem.value === localValue)
-           // Se a cloud estava desatualizada, faz update
-           if (localValue !== cloudItem?.value) {
-              await pushToCloud(key, localValue);
-           }
+           // Só enviamos se não acabámos de atualizar a partir da cloud (onde cloudItem.value passaria a ser igual a localValue)
+           await pushToCloud(key, localValue);
         }
       }
     }

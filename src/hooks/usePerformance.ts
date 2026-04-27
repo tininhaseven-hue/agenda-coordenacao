@@ -8,6 +8,19 @@ export function usePerformance(currentMonthYear: string) { // Format: YYYY-MM
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    // Sincronização Inteligente com a Nuvem
+    const performSync = async () => {
+      try {
+        const { fullTwoWaySync } = await import('@/utils/syncUtils');
+        await fullTwoWaySync();
+      } catch (e) {
+        console.error("Erro na sincronização inicial usePerformance:", e);
+      }
+    };
+    performSync();
+  }, []);
+
+  useEffect(() => {
     // Load budgets
     const storedBudgets = localStorage.getItem(`budgets_${currentMonthYear}`);
     if (storedBudgets) setBudgets(JSON.parse(storedBudgets));
@@ -21,7 +34,8 @@ export function usePerformance(currentMonthYear: string) { // Format: YYYY-MM
     const monthData: Record<string, Record<string, DayKPIData>> = {};
     keys.forEach(k => {
       const date = k.replace('sales_', '');
-      monthData[date] = JSON.parse(localStorage.getItem(k) || '{}');
+      const val = localStorage.getItem(k);
+      if (val) monthData[date] = JSON.parse(val);
     });
     setDailyData(monthData);
     setIsLoaded(true);
@@ -31,10 +45,11 @@ export function usePerformance(currentMonthYear: string) { // Format: YYYY-MM
     setDailyData(prev => {
       const dateData = prev[date] || {};
       const updatedDateData = { ...dateData, [store]: data };
-      localStorage.setItem(`sales_${date}`, JSON.stringify(updatedDateData));
+      const val = JSON.stringify(updatedDateData);
+      localStorage.setItem(`sales_${date}`, val);
       
       const { pushToCloud } = require('@/utils/syncUtils');
-      pushToCloud(`sales_${date}`, JSON.stringify(updatedDateData));
+      pushToCloud(`sales_${date}`, val);
       
       return { ...prev, [date]: updatedDateData };
     });
@@ -44,12 +59,19 @@ export function usePerformance(currentMonthYear: string) { // Format: YYYY-MM
   const updateBudget = (store: string, budget: StoreBudget) => {
     const updated = { ...budgets, [store]: budget };
     setBudgets(updated);
-    localStorage.setItem(`budgets_${currentMonthYear}`, JSON.stringify(updated));
+    const val = JSON.stringify(updated);
+    localStorage.setItem(`budgets_${currentMonthYear}`, val);
+    
+    const { pushToCloud } = require('@/utils/syncUtils');
+    pushToCloud(`budgets_${currentMonthYear}`, val);
   };
 
   const saveMonthlyNotes = (notes: string) => {
     setMonthlyNotes(notes);
     localStorage.setItem(`notes_${currentMonthYear}`, notes);
+    
+    const { pushToCloud } = require('@/utils/syncUtils');
+    pushToCloud(`notes_${currentMonthYear}`, notes);
   };
 
   const getDailyTotals = () => {
