@@ -105,7 +105,7 @@ export default function Home() {
   const [selectedOverdueDate, setSelectedOverdueDate] = useState<string | undefined>(undefined);
   const [editingCustomTask, setEditingCustomTask] = useState<{task: CustomTask, store: string} | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mainTab, setMainTab] = useState<MainTab>('VISÃO ROTINAS');
+  const [mainTab, setMainTab] = useState<MainTab>('RELATÓRIOS');
   const [searchTerm, setSearchTerm] = useState('');
 
   
