@@ -431,7 +431,7 @@ export function TaskDetailModal({
                   </div>
                   <div style={{ borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid #e2e8f0', background: 'white' }}>
                      <JoditEditor
-                       key={`${routine.id}_${activeStore}`}
+                       key={`${routine.id}_${activeStore}_${activeDateStr}`}
                        ref={editor}
                        value={localNotes}
                        config={editorConfig}
