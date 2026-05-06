@@ -364,35 +364,17 @@ export function TaskDetailModal({
             <h3>Estado da Tarefa</h3>
             
             {isGlobal ? (
-               <div className="store-checklist">
-                 <button 
-                   type="button"
-                   className="toggle-all-btn" 
-                   onClick={handleToggleAll}
-                 >
-                   Alternar Seleção para Todas
-                 </button>
-                 {ALL_STORES.map(s => {
-                    const isDone = getStoreCompletion(s);
-                    const isActive = activeStore === s;
-                    return (
-                      <div 
-                        key={s} 
-                        className={`checklist-item ${isActive ? 'active-focus' : ''}`} 
-                        onClick={() => setActiveStore(s as Store)}
-                      >
-                        <div 
-                          className={`checklist-checkbox ${isDone ? 'checked' : ''}`}
-                          onClick={(e) => { e.stopPropagation(); onToggle(routine.id, s); }}
-                        >
-                          {isDone && '✓'}
-                        </div>
-                        <span className={`checklist-label ${isDone ? 'done' : ''}`}>{s}</span>
-                        {isActive && <span className="focus-indicator">●</span>}
-                      </div>
-                    );
-                 })}
-               </div>
+              <>
+                <button 
+                  className={`status-toggle-btn ${ALL_STORES.every(s => getStoreCompletion(s)) ? 'done' : 'pending'}`}
+                  onClick={handleToggleAll}
+                >
+                  {ALL_STORES.every(s => getStoreCompletion(s)) ? '✓ Concluída (Todas as Lojas)' : '○ Marcar como Concluída (Todas as Lojas)'}
+                </button>
+                {execution?.isRescheduled && (
+                  <p className="rescheduled-note">Esta tarefa foi movida de outro dia.</p>
+                )}
+              </>
             ) : (
               <>
                 <button 
