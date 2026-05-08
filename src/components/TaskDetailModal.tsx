@@ -31,7 +31,8 @@ export function TaskDetailModal({
   isOpen, onClose, routine, execution, storeName, onToggle, onUpdateNotes, onReschedule, activeDateStr,
   isCustomTask, onUpdateTask, onDelete, onUpdateChecklist, availableAreas, allRoutineExecutions, allCustomExecutions, onUpdateExecution
 }: Props) {
-  const [localNotes, setLocalNotes] = useState(execution?.notes || '');
+  const [initialNotes, setInitialNotes] = useState(execution?.notes || '');
+  const notesRef = useRef(execution?.notes || '');
   const [localTitle, setLocalTitle] = useState(routine.title);
   const [localArea, setLocalArea] = useState(routine.area);
   const [rescheduleDate, setRescheduleDate] = useState('');
@@ -95,10 +96,12 @@ export function TaskDetailModal({
         const initialExec = isCustomTask 
           ? { notes: allCustomExecutions?.[storeToFocus]?.find(t => t.id === routine.id)?.notes || '' }
           : allRoutineExecutions?.[storeToFocus]?.[routine.id];
-        setLocalNotes(initialExec?.notes || '');
+        setInitialNotes(initialExec?.notes || '');
+        notesRef.current = initialExec?.notes || '';
       } else {
         setActiveStore(storeName as Store);
-        setLocalNotes(execution?.notes || '');
+        setInitialNotes(execution?.notes || '');
+        notesRef.current = execution?.notes || '';
       }
       setLocalTitle(routine.title);
       setLocalArea(routine.area);
@@ -118,13 +121,15 @@ export function TaskDetailModal({
       const currentExec = isCustomTask 
         ? { notes: allCustomExecutions?.[activeStore]?.find(t => t.id === routine.id)?.notes || '' }
         : allRoutineExecutions?.[activeStore]?.[routine.id];
-      setLocalNotes(currentExec?.notes || '');
+      setInitialNotes(currentExec?.notes || '');
+      notesRef.current = currentExec?.notes || '';
     }
   }, [activeStore, isCustomTask, routine.id, allRoutineExecutions, allCustomExecutions, isGlobal]);
 
   if (!isOpen) return null;
 
-  const handleAutoSave = (content: string) => {
+  const handleAutoSave = () => {
+    const content = notesRef.current;
     if (isGlobal) {
       setIsSaving(true);
       ALL_STORES.forEach(s => {
@@ -433,10 +438,10 @@ export function TaskDetailModal({
                      <JoditEditor
                        key={`${routine.id}_${activeStore}_${activeDateStr}`}
                        ref={editor}
-                       value={localNotes}
+                       value={initialNotes}
                        config={editorConfig}
-                       onBlur={(newContent) => setLocalNotes(newContent)}
-                       onChange={(newContent) => setLocalNotes(newContent)}
+                       onBlur={(newContent) => { notesRef.current = newContent; }}
+                       onChange={(newContent) => { notesRef.current = newContent; }}
                      />
                   </div>
                   <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem' }}>
@@ -446,7 +451,7 @@ export function TaskDetailModal({
                       </span>
                     )}
                     <button 
-                      onClick={() => handleAutoSave(localNotes)}
+                      onClick={() => handleAutoSave()}
                       disabled={isSaving}
                       style={{
                         padding: '0.75rem 1.5rem', 
