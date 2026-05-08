@@ -83,7 +83,7 @@ export function TaskDetailModal({
         let storeToFocus: Store = ALL_STORES[0] as Store;
         for (const s of ALL_STORES) {
           const notes = isCustomTask 
-            ? allCustomExecutions?.[s]?.find(t => t.id === routine.id)?.notes
+            ? allCustomExecutions?.[s]?.find(t => t.id === routine.id)?.notes || (routine as any).notes
             : allRoutineExecutions?.[s]?.[routine.id]?.notes;
           
           if (notes && notes.trim() !== '' && notes !== '<p></p>' && notes !== '<p><br></p>') {
@@ -94,14 +94,14 @@ export function TaskDetailModal({
 
         setActiveStore(storeToFocus);
         const initialExec = isCustomTask 
-          ? { notes: allCustomExecutions?.[storeToFocus]?.find(t => t.id === routine.id)?.notes || '' }
+          ? { notes: allCustomExecutions?.[storeToFocus]?.find(t => t.id === routine.id)?.notes || (routine as any).notes || '' }
           : allRoutineExecutions?.[storeToFocus]?.[routine.id];
         setInitialNotes(initialExec?.notes || '');
         notesRef.current = initialExec?.notes || '';
       } else {
         setActiveStore(storeName as Store);
-        setInitialNotes(execution?.notes || '');
-        notesRef.current = execution?.notes || '';
+        setInitialNotes(execution?.notes || (isCustomTask ? (routine as any).notes : '') || '');
+        notesRef.current = execution?.notes || (isCustomTask ? (routine as any).notes : '') || '';
       }
       setLocalTitle(routine.title);
       setLocalArea(routine.area);
@@ -119,7 +119,7 @@ export function TaskDetailModal({
     // Also sync notes if in global mode and we switch focused store
     if (isGlobal) {
       const currentExec = isCustomTask 
-        ? { notes: allCustomExecutions?.[activeStore]?.find(t => t.id === routine.id)?.notes || '' }
+        ? { notes: allCustomExecutions?.[activeStore]?.find(t => t.id === routine.id)?.notes || (routine as any).notes || '' }
         : allRoutineExecutions?.[activeStore]?.[routine.id];
       setInitialNotes(currentExec?.notes || '');
       notesRef.current = currentExec?.notes || '';

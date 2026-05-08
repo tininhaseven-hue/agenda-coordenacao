@@ -430,6 +430,10 @@ export default function Home() {
   };
 
   const handleReportRowClick = (item: ReportItem) => {
+    // Set the calendar date to match the report item so that the modal edits the correct date
+    const itemDate = new Date(item.date);
+    setActiveDate(itemDate);
+
     if (item.isCustom) {
       let taskFound: any = null;
       let targetStoreForModal = item.store;
