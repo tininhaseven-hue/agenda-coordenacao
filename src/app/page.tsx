@@ -110,7 +110,7 @@ export default function Home() {
 
   
   // Estados para Relatórios Detalhados
-  const [reportView, setReportView] = useState<'RESUMO' | 'DETALHADO'>('RESUMO');
+  const [reportView, setReportView] = useState<'RESUMO' | 'DETALHADO'>('DETALHADO');
   const [reportPeriod, setReportPeriod] = useState<'DIA' | 'SEMANA' | 'MÊS' | 'CUSTOM'>('DIA');
   const [reportStartDate, setReportStartDate] = useState(activeDateStr);
   const [reportEndDate, setReportEndDate] = useState(activeDateStr);
