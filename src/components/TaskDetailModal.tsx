@@ -112,7 +112,7 @@ export function TaskDetailModal({
   // Sync checklist when activeStore changes (useful in global mode)
   useEffect(() => {
     const currentChecklist = isCustomTask 
-      ? allCustomExecutions?.[activeStore]?.find(t => t.id === routine.id)?.checklist || []
+      ? allCustomExecutions?.[activeStore]?.find(t => t.id === routine.id)?.checklist || (routine as any).checklist || []
       : allRoutineExecutions?.[activeStore]?.[routine.id]?.checklist || [];
     setLocalChecklist(currentChecklist);
     
