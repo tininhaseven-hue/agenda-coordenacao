@@ -445,6 +445,7 @@ export function useRoutines(activeDateStr: string) {
            const defsStr = localStorage.getItem(`custom_task_definitions_${targetStore}`);
            if (defsStr) {
              let defs = JSON.parse(defsStr);
+             defs = defs.map((d: any) => d.id === id ? { ...d, ...updates } : d);
              const val = JSON.stringify(defs);
              localStorage.setItem(`custom_task_definitions_${targetStore}`, val);
              pushToCloud(`custom_task_definitions_${targetStore}`, val);
