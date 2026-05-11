@@ -124,8 +124,13 @@ export function useRoutines(activeDateStr: string) {
         const isRangeTask = def.endDate && (!def.recurrence || def.recurrence === 'NONE');
         
         if (isRangeTask) {
-          // Range tasks use the definition's state directly
-          finalCustomForToday.push({ ...def });
+          // Range tasks: merge definition with any per-day instance so
+          // checklist and notes saved to the instance are preserved
+          if (existingInstance) {
+            finalCustomForToday.push({ ...def, ...existingInstance });
+          } else {
+            finalCustomForToday.push({ ...def });
+          }
         } else if (existingInstance) {
           // Recurring task with an override (completed/notes) for today
           finalCustomForToday.push({ ...def, ...existingInstance });
@@ -476,7 +481,9 @@ export function useRoutines(activeDateStr: string) {
         } else {
           instances.push({ ...taskAfterUpdate });
         }
-        localStorage.setItem(`customTasks_${activeDateStr}_${targetStore}`, JSON.stringify(instances));
+        const instancesVal = JSON.stringify(instances);
+        localStorage.setItem(`customTasks_${activeDateStr}_${targetStore}`, instancesVal);
+        pushToCloud(`customTasks_${activeDateStr}_${targetStore}`, instancesVal);
       });
 
       return newPrev;
