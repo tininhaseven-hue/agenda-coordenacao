@@ -40,11 +40,36 @@ export function TaskDetailModal({
 
   const isGlobal = storeName === 'Todas as Lojas';
 
-  const initialChecklist = isCustomTask 
-    ? allCustomExecutions?.[activeStore]?.find(t => t.id === routine.id)?.checklist || []
-    : allRoutineExecutions?.[activeStore]?.[routine.id]?.checklist || [];
+  // Helper: reads checklist directly from localStorage (source of truth)
+  const readChecklistFromStorage = (store: string): ChecklistItem[] => {
+    try {
+      // First try per-day instances
+      const instancesStr = localStorage.getItem(`customTasks_${activeDateStr}_${store}`);
+      if (instancesStr) {
+        const instances: CustomTask[] = JSON.parse(instancesStr);
+        const found = instances.find(t => t.id === routine.id);
+        if (found?.checklist && found.checklist.length > 0) return found.checklist;
+      }
+      // Then try definition (range/recurring tasks)
+      const defsStr = localStorage.getItem(`custom_task_definitions_${store}`);
+      if (defsStr) {
+        const defs: CustomTask[] = JSON.parse(defsStr);
+        const found = defs.find(d => d.id === routine.id);
+        if (found?.checklist && found.checklist.length > 0) return found.checklist;
+      }
+    } catch (e) {}
+    // Fallback to in-memory
+    return allCustomExecutions?.[store]?.find(t => t.id === routine.id)?.checklist || (routine as any).checklist || [];
+  };
 
-  const [localChecklist, setLocalChecklist] = useState<ChecklistItem[]>(initialChecklist);
+  const getInitialChecklist = (): ChecklistItem[] => {
+    if (!isCustomTask) {
+      return allRoutineExecutions?.[activeStore]?.[routine.id]?.checklist || [];
+    }
+    return readChecklistFromStorage(activeStore);
+  };
+
+  const [localChecklist, setLocalChecklist] = useState<ChecklistItem[]>(() => getInitialChecklist());
   const [newChecklistText, setNewChecklistText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -109,12 +134,12 @@ export function TaskDetailModal({
     }
   }, [isOpen, execution, storeName, routine, allRoutineExecutions, allCustomExecutions, isCustomTask]);
 
-  // Sync checklist when activeStore changes (useful in global mode)
+  // Sync checklist when modal opens or activeStore changes (reads from localStorage = source of truth)
   useEffect(() => {
-    const currentChecklist = isCustomTask 
-      ? allCustomExecutions?.[activeStore]?.find(t => t.id === routine.id)?.checklist || (routine as any).checklist || []
+    const freshChecklist = isCustomTask 
+      ? readChecklistFromStorage(activeStore)
       : allRoutineExecutions?.[activeStore]?.[routine.id]?.checklist || [];
-    setLocalChecklist(currentChecklist);
+    setLocalChecklist(freshChecklist);
     
     // Also sync notes if in global mode and we switch focused store
     if (isGlobal) {
@@ -124,7 +149,7 @@ export function TaskDetailModal({
       setInitialNotes(currentExec?.notes || '');
       notesRef.current = currentExec?.notes || '';
     }
-  }, [activeStore, isCustomTask, routine.id, allRoutineExecutions, allCustomExecutions, isGlobal]);
+  }, [isOpen, activeStore, isCustomTask, routine.id, allRoutineExecutions, allCustomExecutions, isGlobal]);
 
   if (!isOpen) return null;
 
