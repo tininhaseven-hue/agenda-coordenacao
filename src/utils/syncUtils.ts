@@ -81,20 +81,20 @@ export async function fullTwoWaySync(onStatus?: (status: 'idle' | 'success' | 'e
         const localTs = localTsStr ? parseInt(localTsStr, 10) : 0;
 
         // LÓGICA DE PROTEÇÃO: 
-        // Aceitamos dados da nuvem se:
-        // 1. O local estiver vazio (primeira vez)
+        // Aceitamos dados da nuvem APENAS se:
+        // 1. O local estiver vazio/não existir (primeira vez em branco)
         // 2. TIVERMOS um registo de sincronização anterior (localTs > 0) E a nuvem for realmente mais recente
-        // 3. O localTs for 0 MAS a nuvem tiver dados e o local for diferente (Prevenir perda de dados na primeira sincronização de um novo dispositivo)
+        // NUNCA sobrescrever dados locais existentes com dados da nuvem quando não temos certeza de quem é mais recente
         const nuvemMaisRecente = localTs > 0 && cloudTs > localTs;
-        const primeiroSyncComNuvemCheia = localTs === 0 && cloudValue !== localValue && cloudValue !== '{}' && cloudValue !== '[]';
 
-        if ((isEmptyLocal && cloudValue !== '{}' && cloudValue !== '[]') || nuvemMaisRecente || primeiroSyncComNuvemCheia) {
+        if ((isEmptyLocal && cloudValue !== '{}' && cloudValue !== '[]') || nuvemMaisRecente) {
           localStorage.setItem(key, cloudValue);
           localStorage.setItem('sync_ts_' + key, cloudTs.toString());
           dataUpdated = true;
           console.log(`Atualizado: ${key} (vinda da nuvem)`);
         } else if (!isEmptyLocal && cloudValue !== localValue) {
-          console.log(`Conflito em ${key}: Local tem dados e não temos certeza. Favorecendo local para PUSH.`);
+          // Local tem dados diferentes da nuvem — favorece local (o local é sempre mais recente se o utilizador guardou)
+          console.log(`Conflito em ${key}: Local tem dados. Favorecendo local.`);
         }
       });
     }
