@@ -128,6 +128,14 @@ export function TaskDetailModal({
 
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    // Force save any pending notes before closing
+    if (notesRef.current !== undefined) {
+      handleAutoSave();
+    }
+    onClose();
+  };
+
   const handleAutoSave = () => {
     const content = notesRef.current;
     if (isGlobal) {
@@ -220,7 +228,7 @@ export function TaskDetailModal({
     } else {
       onReschedule(routine.id, activeDateStr, rescheduleDate, activeStore);
     }
-    onClose();
+    handleClose();
   };
 
   const saveChecklist = (newList: ChecklistItem[]) => {
@@ -288,7 +296,7 @@ export function TaskDetailModal({
 
   return (
     <div className="modal-overlay" onMouseDown={(e) => {
-      if (e.target === e.currentTarget) onClose();
+      if (e.target === e.currentTarget) handleClose();
     }}>
       <div className="modal-content">
         <div className="modal-header">
@@ -307,7 +315,7 @@ export function TaskDetailModal({
               <h2 className="modal-title">{routine.title}</h2>
             )}
           </div>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button className="close-btn" onClick={handleClose}>&times;</button>
         </div>
 
         <div className="modal-body">
