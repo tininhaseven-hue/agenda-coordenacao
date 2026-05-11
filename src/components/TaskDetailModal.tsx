@@ -623,7 +623,7 @@ export function TaskDetailModal({
         .modal-content {
           background: white;
           width: 100%;
-          max-width: 500px;
+          max-width: 800px;
           border-radius: 1.25rem;
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
           overflow: hidden;
