@@ -43,14 +43,21 @@ export function TaskDetailModal({
   // Helper: reads checklist directly from localStorage (source of truth)
   const readChecklistFromStorage = (store: string): ChecklistItem[] => {
     try {
-      // First try per-day instances
+      // PRIMARY: Simple key independent of date and store — most reliable for range tasks
+      const simpleKey = `checklist_task_${routine.id}`;
+      const simpleData = localStorage.getItem(simpleKey);
+      if (simpleData) {
+        const parsed: ChecklistItem[] = JSON.parse(simpleData);
+        if (parsed.length > 0) return parsed;
+      }
+      // SECONDARY: per-day instances (for ad-hoc tasks on specific dates)
       const instancesStr = localStorage.getItem(`customTasks_${activeDateStr}_${store}`);
       if (instancesStr) {
         const instances: CustomTask[] = JSON.parse(instancesStr);
         const found = instances.find(t => t.id === routine.id);
         if (found?.checklist && found.checklist.length > 0) return found.checklist;
       }
-      // Then try definition (range/recurring tasks)
+      // TERTIARY: definition (range/recurring tasks)
       const defsStr = localStorage.getItem(`custom_task_definitions_${store}`);
       if (defsStr) {
         const defs: CustomTask[] = JSON.parse(defsStr);
@@ -257,6 +264,12 @@ export function TaskDetailModal({
   };
 
   const saveChecklist = (newList: ChecklistItem[]) => {
+    // PRIMARY: Save directly to a simple key independent of date/store — most reliable
+    try {
+      localStorage.setItem(`checklist_task_${routine.id}`, JSON.stringify(newList));
+    } catch (e) {}
+
+    // ALSO save through normal channels to keep state/sync in sync
     if (isGlobal) {
       ALL_STORES.forEach(s => {
         if (isCustomTask && onUpdateTask) {
